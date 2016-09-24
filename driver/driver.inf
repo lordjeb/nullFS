@@ -1,0 +1,81 @@
+;;;
+;;; nullFS driver
+;;;
+
+[Version]
+Signature = "$Windows NT$"
+Provider = %ManufacturerName%
+DriverVer = 
+Class = "File System"
+CatalogFile = nullFS.cat
+
+[DestinationDirs]
+DefaultDestDir = 12
+nullFS.DriverFiles = 12                      ;%windir%\system32\drivers
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall]
+OptionDesc = %ServiceDescription%
+CopyFiles = nullFS.DriverFiles
+
+[DefaultInstall.Services]
+AddService = %ServiceName%,,nullFS.Service
+
+;;
+;; Default uninstall sections
+;;
+
+[DefaultUninstall]
+DelFiles = nullFS.DriverFiles
+
+[DefaultUninstall.Services]
+DelService = %ServiceName%,0x200             ;Ensure service is stopped before deleting
+
+;
+; Services Section
+;
+
+[nullFS.Service]
+DisplayName = %ServiceName%
+Description = %ServiceDescription%
+ServiceBinary = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
+ServiceType = 2                              ;SERVICE_FILE_SYSTEM_DRIVER
+StartType = 3                                ;SERVICE_DEMAND_START
+ErrorControl = 1                             ;SERVICE_ERROR_NORMAL
+AddReg = nullFS.AddRegistry
+
+;
+; Registry Modifications
+;
+
+[nullFS.AddRegistry]
+HKR,,"DebugFlags",0x00010001 ,0x0
+HKR,,"SupportedFeatures",0x00010001,0x3
+
+;
+; Copy Files
+;
+
+[nullFS.DriverFiles]
+%DriverName%.sys
+
+[SourceDisksFiles]
+nullFS.sys = 1,,
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+;;
+;; String Section
+;;
+
+[Strings]
+; TODO - Add your manufacturer
+ManufacturerName = "LordJeb Software"
+ServiceDescription = "nullFS File System Driver"
+ServiceName = "nullFS"
+DriverName = "nullFS"
+DiskId1 = "nullFS Device Installation Disk"
