@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="driver.rc" />
-    <ClCompile Include="driver.cpp" />
+    <ClCompile Include="nullfs.cpp" />
     <Inf Include="driver.inf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -232,6 +232,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="nullfs.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

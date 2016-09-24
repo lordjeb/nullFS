@@ -29,7 +29,12 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="driver.cpp">
+    <ClInclude Include="nullfs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="nullfs.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
