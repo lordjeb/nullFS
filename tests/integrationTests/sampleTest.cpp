@@ -1,6 +1,22 @@
 #include <gtest\gtest.h>
+#include <Windows.h>
+#include <SetupAPI.h>
+#include "Path.h"
 
-TEST(test_case_name, test_name)
+
+TEST(DriverConfiguration, Installs)
 {
-	ASSERT_EQ(true, true);
+	std::wstring infFilename{ Path::EnsureQuoted(Path::Combine(Path::GetModulePath(), L"nullfs.inf")) };
+
+	std::wstring command{ L"DefaultInstall 128 " };
+	command += infFilename;
+	InstallHinfSection(nullptr, nullptr, command.c_str(), 0);
+
+	// TODO: How to determine if it installed and loaded
+
+	command = L"DefaultUninstall 128 ";
+	command += infFilename;
+	InstallHinfSection(nullptr, nullptr, command.c_str(), 0);
+
+	// TODO: How to determine if it unloaded and uninstalled
 }

@@ -35,9 +35,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="driver.rc" />
+    <ResourceCompile Include="nullfs.rc" />
     <ClCompile Include="nullfs.cpp" />
-    <Inf Include="driver.inf" />
+    <Inf Include="nullfs.inf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CF00E383-097E-4BD6-AABB-F47F775DD01F}</ProjectGuid>
