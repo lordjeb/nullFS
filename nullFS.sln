@@ -8,8 +8,16 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{FD278D70-7703-4F2A-B72F-33885A2E194D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "integrationTests", "tests\integrationTests\integrationTests.vcxproj", "{121002BB-1210-42F0-8E22-EEF08BDC2DEB}"
+	ProjectSection(ProjectDependencies) = postProject
+		{739CBAD6-9602-415D-A49E-06F73F8526ED} = {739CBAD6-9602-415D-A49E-06F73F8526ED}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sharedCode", "sharedCode\sharedCode.vcxproj", "{739CBAD6-9602-415D-A49E-06F73F8526ED}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "unitTests", "tests\unitTests\unitTests.vcxproj", "{F9665723-9CD6-45B6-AF66-2285CD89EBF4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{739CBAD6-9602-415D-A49E-06F73F8526ED} = {739CBAD6-9602-415D-A49E-06F73F8526ED}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,11 +79,24 @@ Global
 		{739CBAD6-9602-415D-A49E-06F73F8526ED}.Release|x64.Build.0 = Release|x64
 		{739CBAD6-9602-415D-A49E-06F73F8526ED}.Release|x86.ActiveCfg = Release|Win32
 		{739CBAD6-9602-415D-A49E-06F73F8526ED}.Release|x86.Build.0 = Release|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Debug|ARM.ActiveCfg = Debug|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Debug|ARM64.ActiveCfg = Debug|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Debug|x64.ActiveCfg = Debug|x64
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Debug|x64.Build.0 = Debug|x64
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Debug|x86.ActiveCfg = Debug|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Debug|x86.Build.0 = Debug|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Release|ARM.ActiveCfg = Release|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Release|ARM64.ActiveCfg = Release|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Release|x64.ActiveCfg = Release|x64
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Release|x64.Build.0 = Release|x64
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Release|x86.ActiveCfg = Release|Win32
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{121002BB-1210-42F0-8E22-EEF08BDC2DEB} = {FD278D70-7703-4F2A-B72F-33885A2E194D}
+		{F9665723-9CD6-45B6-AF66-2285CD89EBF4} = {FD278D70-7703-4F2A-B72F-33885A2E194D}
 	EndGlobalSection
 EndGlobal
