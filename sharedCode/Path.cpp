@@ -21,7 +21,7 @@ std::wstring Path::EnsureQuoted(const std::wstring& s)
 std::wstring Path::GetModuleFilename()
 {
 	std::vector<wchar_t> moduleFilename(MAX_PATH);
-	::GetModuleFileName(nullptr, &moduleFilename[0], moduleFilename.size());
+	::GetModuleFileName(nullptr, &moduleFilename[0], static_cast<DWORD>(moduleFilename.size()));
 	return std::wstring(&moduleFilename[0]);
 }
 
