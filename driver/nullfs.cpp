@@ -3,7 +3,7 @@
 //#include <dontuse.h>
 //#include <suppress.h>
 
-#pragma prefast(disable:__WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode s")
+#pragma prefast(disable:__WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode")
 
 
 // ---------------------------------------------------------------------------
@@ -48,7 +48,7 @@ NULLFS NTSTATUS DriverEntry(
     _In_ _Unreferenced_parameter_ PUNICODE_STRING registryPath
     )
 {
-    NTSTATUS status = STATUS_SUCCESS;
+    NTSTATUS status;
     UNICODE_STRING stringValue;
 
     UNREFERENCED_PARAMETER(registryPath);
