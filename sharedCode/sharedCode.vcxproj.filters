@@ -18,9 +18,15 @@
     <ClCompile Include="Path.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Service.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Path.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -20,9 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Path.cpp" />
+    <ClCompile Include="Service.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Path.h" />
+    <ClInclude Include="Service.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{739CBAD6-9602-415D-A49E-06F73F8526ED}</ProjectGuid>

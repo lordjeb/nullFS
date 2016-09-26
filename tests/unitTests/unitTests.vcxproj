@@ -163,6 +163,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\integrationTests\pathTests.cpp" />
+    <ClCompile Include="serviceTests.cpp" />
     <ClCompile Include="unitTests.cpp" />
   </ItemGroup>
   <ItemGroup>
