@@ -21,12 +21,18 @@
     <ClCompile Include="Service.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Security.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Path.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Security.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

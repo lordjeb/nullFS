@@ -18,10 +18,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sampleTest.cpp">
+    <ClCompile Include="integrationTests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="integrationTests.cpp">
+    <ClCompile Include="driverInstallTests.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
