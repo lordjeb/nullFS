@@ -24,7 +24,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="nullfs.cpp">
+    <ClCompile Include="cleanup.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="close.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="create.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nullfs.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
