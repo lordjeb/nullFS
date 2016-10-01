@@ -1,4 +1,4 @@
-#include "nullfs.h"
+#include "common.h"
 #include <ntifs.h>
 //#include <dontuse.h>
 //#include <suppress.h>

@@ -2,10 +2,6 @@
 #include <ntifs.h>
 
 
-#define FUNCTION_EXIT goto function_exit;
-#define FUNCTION_EXIT_WITH(s) s; goto function_exit;
-
-
 typedef struct _VCB
 {
 	ULONG n;
@@ -43,27 +39,3 @@ typedef struct _VOLUME_DEVICE_OBJECT
 	VCB Vcb;
 
 } VOLUME_DEVICE_OBJECT, *PVOLUME_DEVICE_OBJECT;
-
-_Function_class_(IRP_MJ_CLEANUP)
-_Function_class_(DRIVER_DISPATCH)
-NTSTATUS
-FsdCleanup(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
-	_Inout_ PIRP irp
-	);
-
-_Function_class_(IRP_MJ_CLOSE)
-_Function_class_(DRIVER_DISPATCH)
-NTSTATUS
-FsdClose(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
-	_Inout_ PIRP irp
-	);
-
-_Function_class_(IRP_MJ_CREATE)
-_Function_class_(DRIVER_DISPATCH)
-NTSTATUS
-FsdCreate(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
-	_Inout_ PIRP irp
-	);
