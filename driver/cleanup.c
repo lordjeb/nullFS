@@ -16,12 +16,14 @@
 _Function_class_(IRP_MJ_CLEANUP)
 _Function_class_(DRIVER_DISPATCH)
 NTSTATUS NfFsdCleanup(
-	_In_ NfVolumeDeviceObject* volumeDeviceObject,
-	_Inout_ PIRP irp
-	)
+    _In_ NfVolumeDeviceObject* volumeDeviceObject,
+    _Inout_ PIRP irp
+    )
 {
-	UNREFERENCED_PARAMETER(volumeDeviceObject);
-	UNREFERENCED_PARAMETER(irp);
+    UNREFERENCED_PARAMETER(volumeDeviceObject);
+    UNREFERENCED_PARAMETER(irp);
 
-	return STATUS_SUCCESS;
+    KdPrint(("nullFS: NfFsdCleanup\n"));
+
+    return STATUS_SUCCESS;
 }

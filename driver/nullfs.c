@@ -1,5 +1,6 @@
 #include "common.h"
 #include <ntifs.h>
+#include "names.h"
 //#include <dontuse.h>
 //#include <suppress.h>
 
@@ -51,7 +52,8 @@ NTSTATUS DriverEntry(
     )
 {
     NTSTATUS rc = STATUS_SUCCESS;
-    UNICODE_STRING driverDeviceName = RTL_CONSTANT_STRING(L"\\nullFS");
+    UNICODE_STRING driverDeviceName = RTL_CONSTANT_STRING(NF_DRIVER_DEVICE_NAME);
+    UNICODE_STRING symbolicLinkName = RTL_CONSTANT_STRING(NF_DRIVER_SYMBOLIC_NAME);
 
     UNREFERENCED_PARAMETER(registryPath);
 
@@ -59,11 +61,13 @@ NTSTATUS DriverEntry(
     {
         try
         {
+            KdPrint(("nullFS: DriverEntry\n"));
+
             RtlZeroMemory(&globalData, sizeof(globalData));
 
             rc = ExInitializeResourceLite(&globalData.lock);
             ASSERT(NT_SUCCESS(rc));
-            SetFlag(globalData.flags, GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
+            SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
 
             globalData.driverObject = driverObject;
 
@@ -77,9 +81,18 @@ NTSTATUS DriverEntry(
             {
                 TRY_EXIT;
             }
+            SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
+
+            rc = IoCreateSymbolicLink(&symbolicLinkName, &driverDeviceName);
+            if (!NT_SUCCESS(rc))
+            {
+                TRY_EXIT;
+            }
+            SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
 
             // Register our file system with the I/O subsystem (also adds a reference to the object)
-            IoRegisterFileSystem(globalData.controlDeviceObject);
+            //IoRegisterFileSystem(globalData.controlDeviceObject);
+            SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
         }
         except (EXCEPTION_EXECUTE_HANDLER)
         {
@@ -92,17 +105,9 @@ NTSTATUS DriverEntry(
     {
         if (!NT_SUCCESS(rc))
         {
-            if (FlagOn(globalData.flags, GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
-            {
-                ExDeleteResourceLite(&globalData.lock);
-                ClearFlag(globalData.flags, GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
-            }
+            KdPrint(("nullFS: DriverEntry failed (%08x)\n", rc));
 
-            if (globalData.controlDeviceObject)
-            {
-                IoDeleteDevice(globalData.controlDeviceObject);
-                globalData.controlDeviceObject = NULL;
-            }
+            NfDriverUnload(driverObject);
         }
     }
 
@@ -114,17 +119,36 @@ void NfDriverUnload(
     _In_ _Unreferenced_parameter_ PDRIVER_OBJECT driverObject
     )
 {
+    UNICODE_STRING symbolicLinkName = RTL_CONSTANT_STRING(NF_DRIVER_SYMBOLIC_NAME);
+
     UNREFERENCED_PARAMETER(driverObject);
 
-    if (FlagOn(globalData.flags, GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
+    KdPrint(("nullFS: NfDriverUnload\n"));
+
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
     {
         ExDeleteResourceLite(&globalData.lock);
-        ClearFlag(globalData.flags, GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
     }
 
-    IoUnregisterFileSystem(globalData.controlDeviceObject);
-    IoDeleteDevice(globalData.controlDeviceObject);
-    globalData.controlDeviceObject = NULL;
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
+    {
+        //IoUnregisterFileSystem(globalData.controlDeviceObject);
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
+    }
+
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED))
+    {
+        IoDeleteSymbolicLink(&symbolicLinkName);
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
+    }
+
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED))
+    {
+        IoDeleteDevice(globalData.controlDeviceObject);
+        globalData.controlDeviceObject = NULL;
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
+    }
 }
 
 void NfInitializeFsdDispatch(_In_ PDRIVER_OBJECT driverObject)

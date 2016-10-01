@@ -23,5 +23,7 @@ NTSTATUS NfFsdCreate(
     UNREFERENCED_PARAMETER(volumeDeviceObject);
     UNREFERENCED_PARAMETER(irp);
 
+    KdPrint(("nullFS: NfFsdCreate\n"));
+
     return STATUS_SUCCESS;
 }
