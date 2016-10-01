@@ -10,8 +10,7 @@
 // Global variables
 //
 
-PDEVICE_OBJECT NullFsDeviceObject;
-FAST_IO_DISPATCH FastIoDispatch;
+PDEVICE_OBJECT NullFsDeviceObject; // Control Device Object (CDO)
 
 // ---------------------------------------------------------------------------
 // Function prototypes
@@ -29,8 +28,6 @@ void DriverUnload(
     _In_ _Unreferenced_parameter_ PDRIVER_OBJECT driverObject
     );
 
-void InitializeFastIoDispatch(_In_ PDRIVER_OBJECT driverObject);
-
 void InitializeFsdDispatch(_In_ PDRIVER_OBJECT driverObject);
 
 // ---------------------------------------------------------------------------
@@ -40,7 +37,6 @@ void InitializeFsdDispatch(_In_ PDRIVER_OBJECT driverObject);
 #ifdef ALLOC_PRAGMA
 #pragma alloc_text(INIT, DriverEntry)
 #pragma alloc_text(PAGE, DriverUnload)
-#pragma alloc_text(INIT, InitializeFastIoDispatch)
 #pragma alloc_text(INIT, InitializeFsdDispatch)
 #endif
 
@@ -70,7 +66,6 @@ NTSTATUS DriverEntry(
 	// Initialize the device object
     driverObject->DriverUnload = DriverUnload;
 	InitializeFsdDispatch(driverObject);
-	InitializeFastIoDispatch(driverObject);
 
 	// Register our file system with the I/O subsystem
 	IoRegisterFileSystem(NullFsDeviceObject);
@@ -93,32 +88,9 @@ void DriverUnload(
 {
     UNREFERENCED_PARAMETER(driverObject);
 
+	// Note: The FastFat example does not call IoUnregisterFileSystem. We probably need one or the other of the following.
+	//IoUnregisterFileSystem(NullFsDeviceObject);
 	ObDereferenceObject(NullFsDeviceObject);
-}
-
-void InitializeFastIoDispatch(_In_ PDRIVER_OBJECT driverObject)
-{
-	driverObject->FastIoDispatch = &FastIoDispatch;
-
-	RtlZeroMemory(&FastIoDispatch, sizeof(FastIoDispatch));
-
-	//FastIoDispatch.SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
-	//FastIoDispatch.FastIoCheckIfPossible = FatFastIoCheckIfPossible;  //  CheckForFastIo
-	//FastIoDispatch.FastIoRead = FsRtlCopyRead;             //  Read
-	//FastIoDispatch.FastIoWrite = FsRtlCopyWrite;            //  Write
-	//FastIoDispatch.FastIoQueryBasicInfo = FatFastQueryBasicInfo;     //  QueryBasicInfo
-	//FastIoDispatch.FastIoQueryStandardInfo = FatFastQueryStdInfo;       //  QueryStandardInfo
-	//FastIoDispatch.FastIoLock = FatFastLock;               //  Lock
-	//FastIoDispatch.FastIoUnlockSingle = FatFastUnlockSingle;       //  UnlockSingle
-	//FastIoDispatch.FastIoUnlockAll = FatFastUnlockAll;          //  UnlockAll
-	//FastIoDispatch.FastIoUnlockAllByKey = FatFastUnlockAllByKey;     //  UnlockAllByKey
-	//FastIoDispatch.FastIoQueryNetworkOpenInfo = FatFastQueryNetworkOpenInfo;
-	//FastIoDispatch.AcquireForCcFlush = FatAcquireForCcFlush;
-	//FastIoDispatch.ReleaseForCcFlush = FatReleaseForCcFlush;
-	//FastIoDispatch.MdlRead = FsRtlMdlReadDev;
-	//FastIoDispatch.MdlReadComplete = FsRtlMdlReadCompleteDev;
-	//FastIoDispatch.PrepareMdlWrite = FsRtlPrepareMdlWriteDev;
-	//FastIoDispatch.MdlWriteComplete = FsRtlMdlWriteCompleteDev;
 }
 
 void InitializeFsdDispatch(_In_ PDRIVER_OBJECT driverObject)
