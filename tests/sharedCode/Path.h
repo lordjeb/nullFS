@@ -8,4 +8,5 @@ public:
 	static std::wstring EnsureQuoted(const std::wstring& s);
 	static std::wstring GetModuleFilename();
 	static std::wstring GetModulePath();
+	static std::wstring GetWorkingDirectory();
 };

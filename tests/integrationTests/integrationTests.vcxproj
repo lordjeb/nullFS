@@ -24,6 +24,7 @@
   <ItemGroup>
     <ClCompile Include="integrationTests.cpp" />
     <ClCompile Include="driverInstallTests.cpp" />
+    <ClCompile Include="volumeTests.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{121002BB-1210-42F0-8E22-EEF08BDC2DEB}</ProjectGuid>

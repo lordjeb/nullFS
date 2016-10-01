@@ -31,3 +31,10 @@ std::wstring Path::GetModulePath()
 	auto pos = moduleFilename.find_last_of(PATH_SEP);
 	return moduleFilename.substr(0, pos);
 }
+
+std::wstring Path::GetWorkingDirectory()
+{
+	std::vector<wchar_t> workingDirectory(MAX_PATH);
+	::GetCurrentDirectory(static_cast<DWORD>(workingDirectory.size()), &workingDirectory[0]);
+	return std::wstring(&workingDirectory[0]);
+}
