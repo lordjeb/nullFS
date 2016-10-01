@@ -26,8 +26,12 @@ public:
 	}
 };
 
-TEST_F(VolumeTests, Test_it)
+TEST_F(VolumeTests, Can_open_control_device_object)
 {
-	ASSERT_TRUE(true);
-	// Create a volume??
+	HANDLE hFs = CreateFile(L"\\\\.\\nullFS", GENERIC_ALL, 0, nullptr, OPEN_EXISTING, 0, nullptr);
+	EXPECT_NE(INVALID_HANDLE_VALUE, hFs);
+	if (INVALID_HANDLE_VALUE != hFs)
+	{
+		CloseHandle(hFs);
+	}
 }

@@ -2,18 +2,27 @@
 #include <ntifs.h>
 
 
-typedef struct _VCB
+#define GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED 0x01
+
+typedef struct _NfGlobalData
+{
+	ULONG flags;
+	ERESOURCE lock;
+	PDRIVER_OBJECT driverObject;
+	PDEVICE_OBJECT controlDeviceObject;
+} NfGlobalData;
+
+typedef struct _NfVolumeControlBlock
 {
 	ULONG n;
-
-} VCB, *PVCB;
+} NfVolumeControlBlock;
 
 
 // The Volume Device Object is an I/O system device object with a workqueue and an VCB record
 // appended to the end. There are multiple of these records, one for every mounted volume, and
 // are created during a volume mount operation. The work queue is for handling an overload of
 // work requests to the volume.
-typedef struct _VOLUME_DEVICE_OBJECT
+typedef struct _NfVolumeDeviceObject
 {
 	DEVICE_OBJECT DeviceObject;
 
@@ -36,6 +45,6 @@ typedef struct _VOLUME_DEVICE_OBJECT
 	FSRTL_COMMON_FCB_HEADER VolumeFileHeader;
 
 	// This is the file system specific volume control block.
-	VCB Vcb;
+	NfVolumeControlBlock Vcb;
 
-} VOLUME_DEVICE_OBJECT, *PVOLUME_DEVICE_OBJECT;
+} NfVolumeDeviceObject;

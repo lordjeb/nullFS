@@ -6,7 +6,7 @@
 //
 
 #ifdef ALLOC_PRAGMA
-#pragma alloc_text(PAGE, FsdCreate)
+#pragma alloc_text(PAGE, NfFsdCreate)
 #endif
 
 // ---------------------------------------------------------------------------
@@ -15,13 +15,13 @@
 
 _Function_class_(IRP_MJ_CREATE)
 _Function_class_(DRIVER_DISPATCH)
-NTSTATUS FsdCreate(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
-	_Inout_ PIRP irp
-	)
+NTSTATUS NfFsdCreate(
+    _In_ NfVolumeDeviceObject* volumeDeviceObject,
+    _Inout_ PIRP irp
+    )
 {
-	UNREFERENCED_PARAMETER(volumeDeviceObject);
-	UNREFERENCED_PARAMETER(irp);
+    UNREFERENCED_PARAMETER(volumeDeviceObject);
+    UNREFERENCED_PARAMETER(irp);
 
-	return STATUS_SUCCESS;
+    return STATUS_SUCCESS;
 }

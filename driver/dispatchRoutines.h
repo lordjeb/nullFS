@@ -6,23 +6,23 @@
 _Function_class_(IRP_MJ_CLEANUP)
 _Function_class_(DRIVER_DISPATCH)
 NTSTATUS
-FsdCleanup(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
+NfFsdCleanup(
+	_In_ NfVolumeDeviceObject* NfVolumeDeviceObject,
 	_Inout_ PIRP irp
 	);
 
 _Function_class_(IRP_MJ_CLOSE)
 _Function_class_(DRIVER_DISPATCH)
 NTSTATUS
-FsdClose(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
+NfFsdClose(
+	_In_ NfVolumeDeviceObject* NfVolumeDeviceObject,
 	_Inout_ PIRP irp
 	);
 
 _Function_class_(IRP_MJ_CREATE)
 _Function_class_(DRIVER_DISPATCH)
 NTSTATUS
-FsdCreate(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
+NfFsdCreate(
+	_In_ NfVolumeDeviceObject* NfVolumeDeviceObject,
 	_Inout_ PIRP irp
 	);

@@ -6,7 +6,7 @@
 //
 
 #ifdef ALLOC_PRAGMA
-#pragma alloc_text(PAGE, FsdCleanup)
+#pragma alloc_text(PAGE, NfFsdCleanup)
 #endif
 
 // ---------------------------------------------------------------------------
@@ -15,8 +15,8 @@
 
 _Function_class_(IRP_MJ_CLEANUP)
 _Function_class_(DRIVER_DISPATCH)
-NTSTATUS FsdCleanup(
-	_In_ PVOLUME_DEVICE_OBJECT volumeDeviceObject,
+NTSTATUS NfFsdCleanup(
+	_In_ NfVolumeDeviceObject* volumeDeviceObject,
 	_Inout_ PIRP irp
 	)
 {
