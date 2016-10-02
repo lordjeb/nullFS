@@ -61,7 +61,7 @@ NTSTATUS DriverEntry(
     {
         try
         {
-            KdPrint(("nullFS: DriverEntry\n"));
+            KdPrint(("nullFS: DriverEntry [%s]\n", __TIMESTAMP__));
 
             RtlZeroMemory(&globalData, sizeof(globalData));
 

@@ -20,10 +20,16 @@ NTSTATUS NfFsdClose(
     _Inout_ PIRP irp
     )
 {
-    UNREFERENCED_PARAMETER(volumeDeviceObject);
-    UNREFERENCED_PARAMETER(irp);
-
     KdPrint(("nullFS: NfFsdClose\n"));
+
+    if (NfDeviceIsControlDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
+    {
+        KdPrint(("nullFS: Closing Control Device Object\n"));
+        irp->IoStatus.Status = STATUS_SUCCESS;
+        irp->IoStatus.Information = FILE_OPENED;
+        IoCompleteRequest(irp, IO_DISK_INCREMENT);
+        return STATUS_SUCCESS;
+    }
 
     return STATUS_SUCCESS;
 }
