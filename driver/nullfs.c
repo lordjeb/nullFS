@@ -76,7 +76,7 @@ NTSTATUS DriverEntry(
             NfInitializeFsdDispatch(driverObject);
 
             // Create the device object
-            rc = IoCreateDevice(driverObject, 0, &driverDeviceName, FILE_DEVICE_DISK_FILE_SYSTEM, 0, FALSE, &globalData.controlDeviceObject);
+            rc = IoCreateDevice(driverObject, 0, &driverDeviceName, NF_DEVICE_TYPE, 0, FALSE, &globalData.controlDeviceObject);
             if (!NT_SUCCESS(rc))
             {
                 TRY_EXIT;
@@ -91,7 +91,7 @@ NTSTATUS DriverEntry(
             SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
 
             // Register our file system with the I/O subsystem (also adds a reference to the object)
-            //IoRegisterFileSystem(globalData.controlDeviceObject);
+            IoRegisterFileSystem(globalData.controlDeviceObject);
             SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
         }
         except (EXCEPTION_EXECUTE_HANDLER)
@@ -127,27 +127,21 @@ void NfDriverUnload(
 
     if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
     {
-        ExDeleteResourceLite(&globalData.lock);
         ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
-    }
-
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
-    {
-        //IoUnregisterFileSystem(globalData.controlDeviceObject);
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
+        ExDeleteResourceLite(&globalData.lock);
     }
 
     if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED))
     {
-        IoDeleteSymbolicLink(&symbolicLinkName);
         ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
+        IoDeleteSymbolicLink(&symbolicLinkName);
     }
 
     if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED))
     {
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
         IoDeleteDevice(globalData.controlDeviceObject);
         globalData.controlDeviceObject = NULL;
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
     }
 }
 
@@ -168,7 +162,7 @@ void NfInitializeFsdDispatch(_In_ PDRIVER_OBJECT driverObject)
     //driverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = (PDRIVER_DISPATCH)FatFsdDirectoryControl;
     //driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)FatFsdFileSystemControl;
     //driverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = (PDRIVER_DISPATCH)FatFsdLockControl;
-    //driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)FatFsdDeviceControl;
+    driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)NfFsdDeviceControl;
     //driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)FatFsdShutdown;
     //driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)FatFsdPnp;
 }

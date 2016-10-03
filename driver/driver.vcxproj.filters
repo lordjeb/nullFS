@@ -37,6 +37,9 @@
     <ClInclude Include="names.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ioctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cleanup.c">
@@ -52,6 +55,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="devctrl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -49,6 +49,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="create.c" />
+    <ClCompile Include="devctrl.c" />
     <ClCompile Include="nullfs.c" />
     <Inf Include="nullfs.inf" />
   </ItemGroup>
@@ -278,6 +279,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="flowControl.h" />
     <ClInclude Include="dispatchRoutines.h" />
+    <ClInclude Include="ioctl.h" />
     <ClInclude Include="names.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="struct.h" />
