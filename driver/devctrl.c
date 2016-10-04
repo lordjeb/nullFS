@@ -21,6 +21,8 @@ NTSTATUS NfFsdDeviceControl(
     _Inout_ PIRP irp
     )
 {
+    NTSTATUS status = STATUS_ILLEGAL_FUNCTION;
+
     KdPrint(("nullFS: NfFsdDeviceControl\n"));
 
     if (NfDeviceIsControlDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
@@ -29,6 +31,7 @@ NTSTATUS NfFsdDeviceControl(
 
         switch (currentIrpStackLocation->Parameters.DeviceIoControl.IoControlCode)
         {
+#ifdef DBG
         case IOCTL_SHUTDOWN:
             KdPrint(("nullFS: Shutdown device control code\n"));
             
@@ -43,18 +46,17 @@ NTSTATUS NfFsdDeviceControl(
                 globalData.controlDeviceObject->DriverObject->Flags &= ~0x80;
             }
             
-            irp->IoStatus.Status = STATUS_SUCCESS;
+            status = irp->IoStatus.Status = STATUS_SUCCESS;
             irp->IoStatus.Information = FILE_OPENED;
             IoCompleteRequest(irp, IO_DISK_INCREMENT);
             break;
+#endif
 
         default:
             KdPrint(("nullFS: Unknown device control code\n"));
             break;
         }
-
-        return STATUS_SUCCESS;
     }
 
-    return STATUS_SUCCESS;
+    return status;
 }
