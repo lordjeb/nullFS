@@ -35,7 +35,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="nullfs.rc" />
     <ClCompile Include="cleanup.c" />
     <ClCompile Include="close.c" />
     <ClCompile Include="common.c">
@@ -50,7 +49,9 @@
     </ClCompile>
     <ClCompile Include="create.c" />
     <ClCompile Include="devctrl.c" />
+    <ClCompile Include="fsctrl.c" />
     <ClCompile Include="nullfs.c" />
+    <ClCompile Include="support.c" />
     <Inf Include="nullfs.inf" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -281,8 +282,8 @@
     <ClInclude Include="dispatchRoutines.h" />
     <ClInclude Include="ioctl.h" />
     <ClInclude Include="names.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="struct.h" />
+    <ClInclude Include="support.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

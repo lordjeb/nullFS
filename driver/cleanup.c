@@ -15,21 +15,22 @@
 
 _Function_class_(IRP_MJ_CLEANUP)
 _Function_class_(DRIVER_DISPATCH)
-NTSTATUS NfFsdCleanup(
-    _In_ NfVolumeDeviceObject* volumeDeviceObject,
-    _Inout_ PIRP irp
-    )
+NTSTATUS NfFsdCleanup(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
-    KdPrint(("nullFS: NfFsdCleanup\n"));
+    NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
 
-    if (NfDeviceIsControlDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
+    KdPrint(("nullFS: IRP_MJ_CLEANUP\n"));
+
+    if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject) ||
+        NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
         KdPrint(("nullFS: Cleanup Control Device Object\n"));
-        irp->IoStatus.Status = STATUS_SUCCESS;
-        irp->IoStatus.Information = FILE_OPENED;
-        IoCompleteRequest(irp, IO_DISK_INCREMENT);
-        return STATUS_SUCCESS;
+        FUNCTION_EXIT_WITH(rc = STATUS_SUCCESS);
     }
 
-    return STATUS_SUCCESS;
+    KdPrint(("nullFS: Unrecognized device object\n"));
+
+function_exit:
+
+    return NfCompleteRequest(irp, rc, 0);
 }

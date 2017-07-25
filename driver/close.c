@@ -15,21 +15,21 @@
 
 _Function_class_(IRP_MJ_CLOSE)
 _Function_class_(DRIVER_DISPATCH)
-NTSTATUS NfFsdClose(
-    _In_ NfVolumeDeviceObject* volumeDeviceObject,
-    _Inout_ PIRP irp
-    )
+NTSTATUS NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
-    KdPrint(("nullFS: NfFsdClose\n"));
+    NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
 
-    if (NfDeviceIsControlDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
+    KdPrint(("nullFS: IRP_MJ_CLOSE\n"));
+
+    if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject) ||
+        NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
-        KdPrint(("nullFS: Closing Control Device Object\n"));
-        irp->IoStatus.Status = STATUS_SUCCESS;
-        irp->IoStatus.Information = FILE_OPENED;
-        IoCompleteRequest(irp, IO_DISK_INCREMENT);
-        return STATUS_SUCCESS;
+        FUNCTION_EXIT_WITH(rc = STATUS_SUCCESS)
     }
 
-    return STATUS_SUCCESS;
+    KdPrint(("nullFS: Unrecognized device object\n"));
+
+function_exit:
+
+    return NfCompleteRequest(irp, rc, 0);
 }

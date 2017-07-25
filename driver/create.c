@@ -15,21 +15,24 @@
 
 _Function_class_(IRP_MJ_CREATE)
 _Function_class_(DRIVER_DISPATCH)
-NTSTATUS NfFsdCreate(
-    _In_ NfVolumeDeviceObject* volumeDeviceObject,
-    _Inout_ PIRP irp
-    )
+NTSTATUS NfFsdCreate(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
-    KdPrint(("nullFS: NfFsdCreate\n"));
+    NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
+    ULONG_PTR info = 0;
 
-    if (NfDeviceIsControlDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
+    KdPrint(("nullFS: IRP_MJ_CREATE\n"));
+
+    if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject) ||
+        NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
-        KdPrint(("nullFS: Opening Control Device Object\n"));
-        irp->IoStatus.Status = STATUS_SUCCESS;
-        irp->IoStatus.Information = FILE_OPENED;
-        IoCompleteRequest(irp, IO_DISK_INCREMENT);
-        return STATUS_SUCCESS;
+        rc = STATUS_SUCCESS;
+        info = FILE_OPENED;
+        FUNCTION_EXIT;
     }
 
-    return STATUS_SUCCESS;
+    KdPrint(("nullFS: Unrecognized device object\n"));
+
+function_exit:
+
+    return NfCompleteRequest(irp, rc, info);
 }
