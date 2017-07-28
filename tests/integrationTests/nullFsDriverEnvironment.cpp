@@ -36,7 +36,7 @@ void NullFsDriverEnvironment::TearDown()
 		}
 
 		Service::Stop(L"nullFS");
-		ASSERT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
+		EXPECT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
 	}
 
 	if (flags & NULL_FS_DRIVER_ENVIRONMENT_INSTALLED)
@@ -44,6 +44,6 @@ void NullFsDriverEnvironment::TearDown()
 		auto infFilename{ Path::Combine(Path::GetWorkingDirectory(), L"nullfs.inf") };
 
 		Service::UninstallDriver(infFilename);
-		ASSERT_EQ(SERVICE_NOT_FOUND, Service::GetStatus(L"nullFS"));
+		EXPECT_EQ(SERVICE_NOT_FOUND, Service::GetStatus(L"nullFS"));
 	}
 }
