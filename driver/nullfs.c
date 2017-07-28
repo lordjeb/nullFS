@@ -93,7 +93,7 @@ function_exit:
 
     if (!NT_SUCCESS(rc))
     {
-        NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: DriverEntry failed (%08x)\n", rc);
+        NfDbgPrint(DPFLTR_ERROR_LEVEL, "nullFS: DriverEntry failed (%08x)\n", rc);
 
         NfDriverUnload(driverObject);
     }

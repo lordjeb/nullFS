@@ -19,16 +19,16 @@ NTSTATUS NfFsdCleanup(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
 
-    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IRP_MJ_CLEANUP\n");
+    NfDbgPrint(DPFLTR_CLEANUP, "nullFS: IRP_MJ_CLEANUP\n");
 
     if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject) ||
         NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
-        NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Cleanup Control Device Object\n");
+        NfDbgPrint(DPFLTR_CLEANUP, "nullFS: Cleanup Control Device Object\n");
         FUNCTION_EXIT_WITH(rc = STATUS_SUCCESS);
     }
 
-    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Unrecognized device object\n");
+    NfDbgPrint(DPFLTR_CLEANUP, "nullFS: Unrecognized device object\n");
 
 function_exit:
 
