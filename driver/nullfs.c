@@ -58,6 +58,9 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING regi
 	UNREFERENCED_PARAMETER(registryPath);
 
 	NfDbgPrint(DPFLTR_INFO_LEVEL, "DriverEntry [Build: %s]\n", __TIMESTAMP__);
+#if defined(DBG)
+	DbgBreakPoint();
+#endif
 
 	rc = NfInitializeGlobals(driverObject);
 	FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
