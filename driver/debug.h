@@ -8,7 +8,7 @@
 #define DPFLTR_FS_CONTROL		(DPFLTR_MASK | 0x10)
 
 #if defined(DBG)
-#define NfDbgPrint(lvl, fmt, ...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, lvl, fmt, ##__VA_ARGS__)
+#define NfDbgPrint(lvl, fmt, ...) DbgPrintEx(DPFLTR_IHVDRIVER_ID, lvl, "[nullFS] " fmt, ##__VA_ARGS__)
 #else
 #define NfDbgPrint(x)
 #endif

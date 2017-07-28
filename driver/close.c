@@ -5,7 +5,7 @@
 // Assign text sections for each routine.
 //
 
-#ifdef ALLOC_PRAGMA
+#if defined(ALLOC_PRAGMA)
 #pragma alloc_text(PAGE, NfFsdClose)
 #endif
 
@@ -13,21 +13,31 @@
 // Function implementations
 //
 
+_Dispatch_type_(IRP_MJ_CLOSE)
 _Function_class_(IRP_MJ_CLOSE)
 _Function_class_(DRIVER_DISPATCH)
 NTSTATUS NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
 	NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
+	PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-	NfDbgPrint(DPFLTR_CLOSE, "nullFS: IRP_MJ_CLOSE\n");
+	PAGED_CODE();
 
-	if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT) volumeDeviceObject) ||
-		NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT) volumeDeviceObject))
+	NfDbgPrint(DPFLTR_CLOSE, "IRP_MJ_CLOSE [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
+
+	if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
 	{
+		NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CLOSE: FileSystemDO\n");
 		FUNCTION_EXIT_WITH(rc = STATUS_SUCCESS)
 	}
 
-	NfDbgPrint(DPFLTR_CLOSE, "nullFS: Unrecognized device object\n");
+	if (NfDeviceIsDiskDeviceObject(volumeDeviceObject))
+	{
+		NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CLOSE: DiskDO\n");
+		FUNCTION_EXIT_WITH(rc = STATUS_SUCCESS)
+	}
+
+	NfDbgPrint(DPFLTR_CLOSE, "Unrecognized device object\n");
 
 function_exit:
 

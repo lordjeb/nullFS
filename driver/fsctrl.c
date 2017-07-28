@@ -5,7 +5,7 @@
 // Assign text sections for each routine.
 //
 
-#ifdef ALLOC_PRAGMA
+#if defined(ALLOC_PRAGMA)
 #pragma alloc_text(PAGE, NfFsdFileSystemControl)
 #endif
 
@@ -13,22 +13,30 @@
 // Function implementations
 //
 
+_Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL)
 _Function_class_(IRP_MJ_FILE_SYSTEM_CONTROL)
 _Function_class_(DRIVER_DISPATCH)
 NTSTATUS NfFsdFileSystemControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
 	NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
+	PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-	NfDbgPrint(DPFLTR_FS_CONTROL, "nullFS: IRP_MJ_FILE_SYSTEM_CONTROL\n");
+	PAGED_CODE();
+
+	NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
 
 	if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT) volumeDeviceObject))
 	{
-		PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
+		NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: FileSystemDO\n");
 
 		switch (currentIrpStackLocation->MinorFunction)
 		{
 			case IRP_MN_MOUNT_VOLUME:
-				NfDbgPrint(DPFLTR_FS_CONTROL, "nullFS: IRP_MN_MOUNT_VOLUME\n");
+				NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: IRP_MN_MOUNT_VOLUME\n");
+				break;
+
+			default:
+				NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: Unknown MinorFunction\n");
 				break;
 		}
 
@@ -37,11 +45,11 @@ NTSTATUS NfFsdFileSystemControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ 
 
 	if (NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT) volumeDeviceObject))
 	{
-		NfDbgPrint(DPFLTR_FS_CONTROL, "nullFS: Volume device object\n");
+		NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: DiskDO\n");
 		FUNCTION_EXIT;
 	}
 
-	NfDbgPrint(DPFLTR_FS_CONTROL, "nullFS: Unrecognized device object\n");
+	NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: Unrecognized device object\n");
 
 function_exit:
 
