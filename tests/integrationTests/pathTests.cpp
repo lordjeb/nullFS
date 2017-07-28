@@ -19,7 +19,7 @@ TEST(Path, GetModulePath_returns_directory)
 TEST(Path, GetModulePath_not_ends_with_slash)
 {
 	auto fn = Path::GetModulePath();
-	ASSERT_NE(L'\\', fn.at(fn.length()-1));
+	ASSERT_NE(L'\\', fn.at(fn.length() - 1));
 }
 
 TEST(Path, Combine_adds_slash)
