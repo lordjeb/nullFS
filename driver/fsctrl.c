@@ -19,7 +19,7 @@ NTSTATUS NfFsdFileSystemControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ 
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
 
-    KdPrint(("nullFS: IRP_MJ_FILE_SYSTEM_CONTROL\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IRP_MJ_FILE_SYSTEM_CONTROL\n");
 
     if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
@@ -28,7 +28,7 @@ NTSTATUS NfFsdFileSystemControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ 
         switch (currentIrpStackLocation->MinorFunction)
         {
         case IRP_MN_MOUNT_VOLUME:
-            KdPrint(("nullFS: IRP_MN_MOUNT_VOLUME\n"));
+            NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IRP_MN_MOUNT_VOLUME\n");
             break;
         }
 
@@ -37,11 +37,11 @@ NTSTATUS NfFsdFileSystemControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ 
     
     if (NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
-        KdPrint(("nullFS: Volume device object\n"));
+        NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Volume device object\n");
         FUNCTION_EXIT;
     }
 
-    KdPrint(("nullFS: Unrecognized device object\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Unrecognized device object\n");
 
 function_exit:
 

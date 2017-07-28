@@ -57,7 +57,7 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ _Unreferenced_parame
 
     UNREFERENCED_PARAMETER(registryPath);
 
-    KdPrint(("nullFS: DriverEntry [%s]\n", __TIMESTAMP__));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: DriverEntry [%s]\n", __TIMESTAMP__);
 
     RtlZeroMemory(&globalData, sizeof(globalData));
 
@@ -93,7 +93,7 @@ function_exit:
 
     if (!NT_SUCCESS(rc))
     {
-        KdPrint(("nullFS: DriverEntry failed (%08x)\n", rc));
+        NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: DriverEntry failed (%08x)\n", rc);
 
         NfDriverUnload(driverObject);
     }
@@ -108,7 +108,7 @@ void NfDriverUnload(_In_ _Unreferenced_parameter_ PDRIVER_OBJECT driverObject)
 
     UNREFERENCED_PARAMETER(driverObject);
 
-    KdPrint(("nullFS: NfDriverUnload\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: NfDriverUnload\n");
 
     if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED))
     {

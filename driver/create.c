@@ -20,7 +20,7 @@ NTSTATUS NfFsdCreate(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
     ULONG_PTR info = 0;
 
-    KdPrint(("nullFS: IRP_MJ_CREATE\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IRP_MJ_CREATE\n");
 
     if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject) ||
         NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
@@ -30,7 +30,7 @@ NTSTATUS NfFsdCreate(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
         FUNCTION_EXIT;
     }
 
-    KdPrint(("nullFS: Unrecognized device object\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Unrecognized device object\n");
 
 function_exit:
 

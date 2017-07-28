@@ -20,7 +20,7 @@ NTSTATUS NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
 
-    KdPrint(("nullFS: IRP_MJ_DEVICE_CONTROL\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IRP_MJ_DEVICE_CONTROL\n");
 
     if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
@@ -30,7 +30,7 @@ NTSTATUS NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP
         {
 #ifdef DBG
         case IOCTL_SHUTDOWN:
-            KdPrint(("nullFS: IOCTL_SHUTDOWN\n"));
+            NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IOCTL_SHUTDOWN\n");
             
             if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
             {
@@ -47,7 +47,7 @@ NTSTATUS NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP
 #endif
 
         default:
-            KdPrint(("nullFS: IOCTL_Unknown\n"));
+            NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IOCTL_Unknown\n");
             break;
         }
 
@@ -56,11 +56,11 @@ NTSTATUS NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP
 
     if (NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
     {
-        KdPrint(("nullFS: Volume device object\n"));
+        NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Volume device object\n");
         FUNCTION_EXIT;
     }
 
-    KdPrint(("nullFS: Unrecognized device object\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Unrecognized device object\n");
 
 function_exit:
 

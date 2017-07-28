@@ -19,7 +19,7 @@ NTSTATUS NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
 
-    KdPrint(("nullFS: IRP_MJ_CLOSE\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: IRP_MJ_CLOSE\n");
 
     if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject) ||
         NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
@@ -27,7 +27,7 @@ NTSTATUS NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
         FUNCTION_EXIT_WITH(rc = STATUS_SUCCESS)
     }
 
-    KdPrint(("nullFS: Unrecognized device object\n"));
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "nullFS: Unrecognized device object\n");
 
 function_exit:
 
