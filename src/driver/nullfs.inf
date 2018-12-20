@@ -11,7 +11,7 @@ CatalogFile = nullFS.cat
 
 [DestinationDirs]
 DefaultDestDir = 12
-nullFS.DriverFiles = 12                      ;%windir%\system32\drivers
+CopyFiles.DriverFiles = 12                      ;12 = %windir%\system32\drivers
 
 ;;
 ;; Default install sections
@@ -19,7 +19,10 @@ nullFS.DriverFiles = 12                      ;%windir%\system32\drivers
 
 [DefaultInstall]
 OptionDesc = %ServiceDescription%
-CopyFiles = nullFS.DriverFiles
+CopyFiles = CopyFiles.DriverFiles
+
+[CopyFiles.DriverFiles]
+%DriverFileName%.sys
 
 [DefaultInstall.Services]
 AddService = %ServiceName%,,nullFS.Service
@@ -29,7 +32,10 @@ AddService = %ServiceName%,,nullFS.Service
 ;;
 
 [DefaultUninstall]
-DelFiles = nullFS.DriverFiles
+DelFiles = DelFiles.DriverFiles
+
+[DelFiles.DriverFiles]
+%DriverFileName%.sys
 
 [DefaultUninstall.Services]
 DelService = %ServiceName%,0x200             ;Ensure service is stopped before deleting
@@ -41,7 +47,7 @@ DelService = %ServiceName%,0x200             ;Ensure service is stopped before d
 [nullFS.Service]
 DisplayName = %ServiceName%
 Description = %ServiceDescription%
-ServiceBinary = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
+ServiceBinary = %12%\%DriverFileName%.sys    ;%windir%\system32\drivers\
 ServiceType = 2                              ;SERVICE_FILE_SYSTEM_DRIVER
 StartType = 3                                ;SERVICE_DEMAND_START
 ErrorControl = 1                             ;SERVICE_ERROR_NORMAL
@@ -59,9 +65,6 @@ HKR,,"SupportedFeatures",0x00010001,0x3
 ; Copy Files
 ;
 
-[nullFS.DriverFiles]
-%DriverName%.sys
-
 [SourceDisksFiles]
 nullFS.sys = 1,,
 
@@ -73,9 +76,8 @@ nullFS.sys = 1,,
 ;;
 
 [Strings]
-; TODO - Add your manufacturer
 ManufacturerName = "LordJeb Software"
 ServiceDescription = "nullFS File System Driver"
 ServiceName = "nullFS"
-DriverName = "nullFS"
+DriverFileName = "nullFS"
 DiskId1 = "nullFS Device Installation Disk"

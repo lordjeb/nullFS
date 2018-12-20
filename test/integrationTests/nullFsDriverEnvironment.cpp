@@ -4,7 +4,7 @@
 #include <win32cpp/error.h>
 #include <win32cpp/handle.h>
 #include <win32cpp/string_extensions.h>
-#include "Service.h"
+#include "TestDriver.h"
 #include "../../src/driver/ioctl.h"
 
 using ::testing::Eq;
@@ -15,18 +15,23 @@ enum
     NULL_FS_DRIVER_ENVIRONMENT_STARTED = 0x02
 };
 
+NullFsDriverEnvironment::NullFsDriverEnvironment()
+    : testDriver_{ L"nullFS", win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") }
+{
+}
+
+NullFsDriverEnvironment::~NullFsDriverEnvironment()
+{
+}
+
 void NullFsDriverEnvironment::SetUp()
 {
     ASSERT_TRUE(isUserAdmin());
 
-    auto infFilename{ win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") };
-
-    Service::InstallDriver(infFilename);
-    ASSERT_THAT(Service::GetStatus(L"nullFS"), Eq(SERVICE_STOPPED));
+    testDriver_.install();
     flags |= NULL_FS_DRIVER_ENVIRONMENT_INSTALLED;
 
-    Service::Start(L"nullFS");
-    ASSERT_THAT(Service::GetStatus(L"nullFS"), Eq(SERVICE_RUNNING));
+    testDriver_.start();
     flags |= NULL_FS_DRIVER_ENVIRONMENT_STARTED;
 }
 
@@ -34,20 +39,17 @@ void NullFsDriverEnvironment::TearDown()
 {
     if (flags & NULL_FS_DRIVER_ENVIRONMENT_STARTED)
     {
+        // Send hack IOCTL to allow our FS driver to unload
         win32cpp::unique_file_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr) };
         CHECK_BOOL(bool(hFs));
         EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr), Eq(TRUE)) << L"GetLastError() == " << GetLastError();
 
-        Service::Stop(L"nullFS");
-        EXPECT_THAT(Service::GetStatus(L"nullFS"), Eq(SERVICE_STOPPED));
+        testDriver_.stop();
     }
 
     if (flags & NULL_FS_DRIVER_ENVIRONMENT_INSTALLED)
     {
-        auto infFilename{ win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") };
-
-        Service::UninstallDriver(infFilename);
-        EXPECT_THAT(Service::GetStatus(L"nullFS"), Eq(SERVICE_NOT_FOUND));
+        testDriver_.uninstall();
     }
 }
 
