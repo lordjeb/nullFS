@@ -121,7 +121,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>Setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)externals\gtest\lib\static\$(Platform)\$(Configuration)\;$(SolutionDir)bld\test\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
@@ -139,7 +139,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>DebugFull</GenerateDebugInformation>
       <AdditionalDependencies>Setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)externals\gtest\lib\static\$(Platform)\$(Configuration)\;$(SolutionDir)bld\test\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
     </Link>
