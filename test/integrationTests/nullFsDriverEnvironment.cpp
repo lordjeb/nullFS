@@ -1,5 +1,6 @@
 #include "nullFsDriverEnvironment.h"
 #include <gtest/gtest.h>
+#include <win32cpp/string_extensions.h>
 #include "Service.h"
 #include "Path.h"
 #include "Security.h"
@@ -12,7 +13,7 @@ void NullFsDriverEnvironment::SetUp()
 {
 	ASSERT_TRUE(Security::IsUserAdmin());
 
-	auto infFilename{ Path::Combine(Path::GetWorkingDirectory(), L"nullfs.inf") };
+	auto infFilename{ win32cpp::appendPath(Path::GetWorkingDirectory(), L"nullfs.inf") };
 
 	Service::InstallDriver(infFilename);
 	ASSERT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
@@ -41,7 +42,7 @@ void NullFsDriverEnvironment::TearDown()
 
 	if (flags & NULL_FS_DRIVER_ENVIRONMENT_INSTALLED)
 	{
-		auto infFilename{ Path::Combine(Path::GetWorkingDirectory(), L"nullfs.inf") };
+		auto infFilename{ win32cpp::appendPath(Path::GetWorkingDirectory(), L"nullfs.inf") };
 
 		Service::UninstallDriver(infFilename);
 		EXPECT_EQ(SERVICE_NOT_FOUND, Service::GetStatus(L"nullFS"));

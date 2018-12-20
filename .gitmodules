@@ -1,6 +1,3 @@
 [submodule "externals/googletest"]
 	path = externals/submodules/googletest
 	url = git@github.com:google/googletest.git
-[submodule "externals/win32cpp"]
-	path = externals/submodules/win32cpp
-	url = git@github.com:lordjeb/win32cpp.git
