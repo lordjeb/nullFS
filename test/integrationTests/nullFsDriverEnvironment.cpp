@@ -2,8 +2,6 @@
 #include <gtest/gtest.h>
 #include <win32cpp/string_extensions.h>
 #include "Service.h"
-#include "Path.h"
-#include "Security.h"
 #include "../../src/driver/ioctl.h"
 
 #define NULL_FS_DRIVER_ENVIRONMENT_INSTALLED 0x01
@@ -11,9 +9,9 @@
 
 void NullFsDriverEnvironment::SetUp()
 {
-	ASSERT_TRUE(Security::IsUserAdmin());
+	ASSERT_TRUE(IsUserAdmin());
 
-	auto infFilename{ win32cpp::appendPath(Path::GetWorkingDirectory(), L"nullfs.inf") };
+	auto infFilename{ win32cpp::appendPath(GetWorkingDirectory(), L"nullfs.inf") };
 
 	Service::InstallDriver(infFilename);
 	ASSERT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
@@ -42,9 +40,40 @@ void NullFsDriverEnvironment::TearDown()
 
 	if (flags & NULL_FS_DRIVER_ENVIRONMENT_INSTALLED)
 	{
-		auto infFilename{ win32cpp::appendPath(Path::GetWorkingDirectory(), L"nullfs.inf") };
+		auto infFilename{ win32cpp::appendPath(GetWorkingDirectory(), L"nullfs.inf") };
 
 		Service::UninstallDriver(infFilename);
 		EXPECT_EQ(SERVICE_NOT_FOUND, Service::GetStatus(L"nullFS"));
 	}
+}
+
+std::wstring NullFsDriverEnvironment::GetWorkingDirectory()
+{
+    std::vector<wchar_t> workingDirectory(MAX_PATH);
+    ::GetCurrentDirectory(static_cast<DWORD>(workingDirectory.size()), &workingDirectory[0]);
+    return std::wstring{ &workingDirectory[0] };
+}
+
+bool NullFsDriverEnvironment::IsUserAdmin()
+{
+    BOOL b;
+    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
+    PSID AdministratorsGroup;
+    b = AllocateAndInitializeSid(
+        &NtAuthority,
+        2,
+        SECURITY_BUILTIN_DOMAIN_RID,
+        DOMAIN_ALIAS_RID_ADMINS,
+        0, 0, 0, 0, 0, 0,
+        &AdministratorsGroup);
+    if (b)
+    {
+        if (!CheckTokenMembership(nullptr, AdministratorsGroup, &b))
+        {
+            b = FALSE;
+        }
+        FreeSid(AdministratorsGroup);
+    }
+
+    return FALSE != b;
 }

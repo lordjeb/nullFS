@@ -22,9 +22,11 @@
     <ClCompile Include="integrationTests.cpp" />
     <ClCompile Include="controlDeviceObjectTests.cpp" />
     <ClCompile Include="nullFsDriverEnvironment.cpp" />
+    <ClCompile Include="Service.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nullFsDriverEnvironment.h" />
+    <ClInclude Include="Service.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\externals\googlemock\googlemock.vcxproj">
@@ -32,9 +34,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\externals\googletest\googletest.vcxproj">
       <Project>{49ef40d9-93c1-49ed-8e5c-b03797d8a9dc}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\sharedTestCode\sharedTestCode.vcxproj">
-      <Project>{739cbad6-9602-415d-a49e-06f73f8526ed}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">

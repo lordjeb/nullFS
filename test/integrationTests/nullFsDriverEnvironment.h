@@ -4,11 +4,12 @@
 class NullFsDriverEnvironment : public ::testing::Environment
 {
 public:
-	NullFsDriverEnvironment() : flags(0) {}
-	virtual ~NullFsDriverEnvironment() {}
-	virtual void SetUp();
-	virtual void TearDown();
-
+    NullFsDriverEnvironment() {}
+    virtual ~NullFsDriverEnvironment() {}
+    virtual void SetUp();
+    virtual void TearDown();
+    bool IsUserAdmin();
+    std::wstring GetWorkingDirectory();
 private:
-	unsigned long flags;
+    unsigned long flags{ 0 };
 };
