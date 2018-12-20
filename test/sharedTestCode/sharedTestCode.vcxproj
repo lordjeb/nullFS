@@ -31,7 +31,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{739CBAD6-9602-415D-A49E-06F73F8526ED}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>sharedCode</RootNamespace>
+    <RootNamespace>sharedTestCode</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
