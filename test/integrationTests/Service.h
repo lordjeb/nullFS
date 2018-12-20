@@ -1,6 +1,7 @@
 #pragma once
 #include <Windows.h>
 #include <string>
+#include <win32cpp/handle.h>
 
 #define SERVICE_NOT_FOUND 0
 
@@ -16,5 +17,5 @@ public:
 
 private:
     static void InstallInfSection(const std::wstring& section, const std::wstring& infFile);
-    static SC_HANDLE Open(const std::wstring& serviceName, DWORD desiredAccess = SERVICE_QUERY_STATUS);
+    static win32cpp::unique_service_handle Open(const std::wstring& serviceName, DWORD desiredAccess = SERVICE_QUERY_STATUS);
 };

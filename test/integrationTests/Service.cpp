@@ -1,6 +1,8 @@
 #include "Service.h"
 #include <Windows.h>
 #include <SetupAPI.h>
+#include <win32cpp/error.h>
+#include <win32cpp/handle.h>
 
 #define QUOTE L'\"'
 
@@ -17,11 +19,10 @@ int Service::GetStatus(const std::wstring& serviceName)
     if (service)
     {
         SERVICE_STATUS status = { 0 };
-        if (QueryServiceStatus(service, &status))
+        if (QueryServiceStatus(service.get(), &status))
         {
             result = status.dwCurrentState;
         }
-        CloseServiceHandle(service);
     }
 
     return result;
@@ -38,17 +39,11 @@ void Service::InstallInfSection(const std::wstring& section, const std::wstring&
     ::InstallHinfSection(nullptr, nullptr, command.c_str(), 0);
 }
 
-SC_HANDLE Service::Open(const std::wstring& serviceName, DWORD desiredAccess /*= SERVICE_QUERY_STATUS*/)
+win32cpp::unique_service_handle Service::Open(const std::wstring& serviceName, DWORD desiredAccess /*= SERVICE_QUERY_STATUS*/)
 {
-    SC_HANDLE result = nullptr;
-    auto scm = OpenSCManager(nullptr, nullptr, desiredAccess);
-    if (scm)
-    {
-        result = OpenService(scm, serviceName.c_str(), desiredAccess);
-        CloseServiceHandle(scm);
-    }
-
-    return result;
+    win32cpp::unique_service_handle scm{ OpenSCManager(nullptr, nullptr, desiredAccess) };
+    CHECK_BOOL(bool(scm));
+    return win32cpp::unique_service_handle{ OpenService(scm.get(), serviceName.c_str(), desiredAccess) };
 }
 
 void Service::Start(const std::wstring& serviceName)
@@ -56,8 +51,7 @@ void Service::Start(const std::wstring& serviceName)
     auto service = Open(serviceName, SERVICE_START);
     if (service)
     {
-        StartService(service, 0, nullptr);
-        CloseServiceHandle(service);
+        StartService(service.get(), 0, nullptr);
     }
 }
 
@@ -67,8 +61,7 @@ void Service::Stop(const std::wstring& serviceName)
     if (service)
     {
         SERVICE_STATUS status = { 0 };
-        ControlService(service, SERVICE_CONTROL_STOP, &status);
-        CloseServiceHandle(service);
+        ControlService(service.get(), SERVICE_CONTROL_STOP, &status);
     }
 }
 
