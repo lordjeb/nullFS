@@ -9,52 +9,52 @@
 
 void NullFsDriverEnvironment::SetUp()
 {
-	ASSERT_TRUE(IsUserAdmin());
+    ASSERT_TRUE(isUserAdmin());
 
-	auto infFilename{ win32cpp::appendPath(GetWorkingDirectory(), L"nullfs.inf") };
+    auto infFilename{ win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") };
 
-	Service::InstallDriver(infFilename);
-	ASSERT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
-	flags |= NULL_FS_DRIVER_ENVIRONMENT_INSTALLED;
+    Service::InstallDriver(infFilename);
+    ASSERT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
+    flags |= NULL_FS_DRIVER_ENVIRONMENT_INSTALLED;
 
-	Service::Start(L"nullFS");
-	ASSERT_EQ(SERVICE_RUNNING, Service::GetStatus(L"nullFS"));
-	flags |= NULL_FS_DRIVER_ENVIRONMENT_STARTED;
+    Service::Start(L"nullFS");
+    ASSERT_EQ(SERVICE_RUNNING, Service::GetStatus(L"nullFS"));
+    flags |= NULL_FS_DRIVER_ENVIRONMENT_STARTED;
 }
 
 void NullFsDriverEnvironment::TearDown()
 {
-	if (flags & NULL_FS_DRIVER_ENVIRONMENT_STARTED)
-	{
-		auto hFs = CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
-		EXPECT_NE(hFs, INVALID_HANDLE_VALUE);
-		if (INVALID_HANDLE_VALUE != hFs)
-		{
-			EXPECT_TRUE(DeviceIoControl(hFs, IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr)) << L"GetLastError() == " << GetLastError();
-			CloseHandle(hFs);
-		}
+    if (flags & NULL_FS_DRIVER_ENVIRONMENT_STARTED)
+    {
+        auto hFs = CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr);
+        EXPECT_NE(hFs, INVALID_HANDLE_VALUE);
+        if (INVALID_HANDLE_VALUE != hFs)
+        {
+            EXPECT_TRUE(DeviceIoControl(hFs, IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr)) << L"GetLastError() == " << GetLastError();
+            CloseHandle(hFs);
+        }
 
-		Service::Stop(L"nullFS");
-		EXPECT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
-	}
+        Service::Stop(L"nullFS");
+        EXPECT_EQ(SERVICE_STOPPED, Service::GetStatus(L"nullFS"));
+    }
 
-	if (flags & NULL_FS_DRIVER_ENVIRONMENT_INSTALLED)
-	{
-		auto infFilename{ win32cpp::appendPath(GetWorkingDirectory(), L"nullfs.inf") };
+    if (flags & NULL_FS_DRIVER_ENVIRONMENT_INSTALLED)
+    {
+        auto infFilename{ win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") };
 
-		Service::UninstallDriver(infFilename);
-		EXPECT_EQ(SERVICE_NOT_FOUND, Service::GetStatus(L"nullFS"));
-	}
+        Service::UninstallDriver(infFilename);
+        EXPECT_EQ(SERVICE_NOT_FOUND, Service::GetStatus(L"nullFS"));
+    }
 }
 
-std::wstring NullFsDriverEnvironment::GetWorkingDirectory()
+std::wstring NullFsDriverEnvironment::getWorkingDirectory()
 {
     std::vector<wchar_t> workingDirectory(MAX_PATH);
     ::GetCurrentDirectory(static_cast<DWORD>(workingDirectory.size()), &workingDirectory[0]);
     return std::wstring{ &workingDirectory[0] };
 }
 
-bool NullFsDriverEnvironment::IsUserAdmin()
+bool NullFsDriverEnvironment::isUserAdmin()
 {
     BOOL b;
     SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;

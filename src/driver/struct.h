@@ -12,16 +12,16 @@
 // Holds all global data for the driver in a single structure
 typedef struct _NfGlobalData
 {
-	// NF_GLOBAL_DATA_FLAGS_*
-	ULONG flags;
+    // NF_GLOBAL_DATA_FLAGS_*
+    ULONG flags;
 
-	ERESOURCE lock;
+    ERESOURCE lock;
 
-	PDRIVER_OBJECT driverObject;
+    PDRIVER_OBJECT driverObject;
 
-	PDEVICE_OBJECT fileSystemDeviceObject;
+    PDEVICE_OBJECT fileSystemDeviceObject;
 
-	PDEVICE_OBJECT diskDeviceObject;
+    PDEVICE_OBJECT diskDeviceObject;
 
 } NfGlobalData;
 
@@ -30,7 +30,7 @@ extern NfGlobalData globalData;
 
 typedef struct _NfVolumeControlBlock
 {
-	ULONG n;
+    ULONG n;
 } NfVolumeControlBlock;
 
 
@@ -40,27 +40,27 @@ typedef struct _NfVolumeControlBlock
 // work requests to the volume.
 typedef struct _NfVolumeDeviceObject
 {
-	DEVICE_OBJECT DeviceObject;
+    DEVICE_OBJECT DeviceObject;
 
-	// The following field tells how many requests for this volume have either been enqueued to
-	// ExWorker threads or are currently being serviced by ExWorker threads. If the number goes
-	// above a certain threshold, put the request on the overflow queue to be executed later.
-	ULONG PostedRequestCount;
+    // The following field tells how many requests for this volume have either been enqueued to
+    // ExWorker threads or are currently being serviced by ExWorker threads. If the number goes
+    // above a certain threshold, put the request on the overflow queue to be executed later.
+    ULONG PostedRequestCount;
 
-	// The following field indicates the number of IRP's waiting to be serviced in the overflow queue.
-	ULONG OverflowQueueCount;
+    // The following field indicates the number of IRP's waiting to be serviced in the overflow queue.
+    ULONG OverflowQueueCount;
 
-	// The following field contains the queue header of the overflow queue. The Overflow queue is a
-	// list of IRP's linked via the IRP's ListEntry field.
-	LIST_ENTRY OverflowQueue;
+    // The following field contains the queue header of the overflow queue. The Overflow queue is a
+    // list of IRP's linked via the IRP's ListEntry field.
+    LIST_ENTRY OverflowQueue;
 
-	// The following spinlock protects access to all the above fields.
-	KSPIN_LOCK OverflowQueueSpinLock;
+    // The following spinlock protects access to all the above fields.
+    KSPIN_LOCK OverflowQueueSpinLock;
 
-	// This is a common head for the FAT volume file
-	FSRTL_COMMON_FCB_HEADER VolumeFileHeader;
+    // This is a common head for the FAT volume file
+    FSRTL_COMMON_FCB_HEADER VolumeFileHeader;
 
-	// This is the file system specific volume control block.
-	NfVolumeControlBlock Vcb;
+    // This is the file system specific volume control block.
+    NfVolumeControlBlock Vcb;
 
 } NfVolumeDeviceObject;

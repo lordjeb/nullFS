@@ -8,8 +8,8 @@ public:
     virtual ~NullFsDriverEnvironment() {}
     virtual void SetUp();
     virtual void TearDown();
-    bool IsUserAdmin();
-    std::wstring GetWorkingDirectory();
+    bool isUserAdmin();
+    std::wstring getWorkingDirectory();
 private:
     unsigned long flags{ 0 };
 };
