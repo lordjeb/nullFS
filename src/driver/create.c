@@ -13,10 +13,8 @@
 // Function implementations
 //
 
-_Dispatch_type_(IRP_MJ_CREATE)
-_Function_class_(IRP_MJ_CREATE)
-_Function_class_(DRIVER_DISPATCH)
-NTSTATUS NfFsdCreate(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+_Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(DRIVER_DISPATCH) NTSTATUS
+    NfFsdCreate(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
     ULONG_PTR information = 0;

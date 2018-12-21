@@ -8,7 +8,7 @@ constexpr const wchar_t driverServiceName[] = NF_NAME;
 
 NullFsDriverEnvironment::NullFsDriverEnvironment()
     : installTestDriver_{ driverServiceName, win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") },
-    startTestDriver_{ driverServiceName }
+      startTestDriver_{ driverServiceName }
 {
 }
 
@@ -22,10 +22,12 @@ void NullFsDriverEnvironment::SetUp()
 void NullFsDriverEnvironment::TearDown()
 {
     // Send hack IOCTL to allow our FS driver to unload
-    win32cpp::unique_file_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr) };
+    win32cpp::unique_file_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                                 nullptr, OPEN_EXISTING, 0, nullptr) };
     if (hFs)
     {
-        EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr), Eq(TRUE)) << L"GetLastError() == " << GetLastError();
+        EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr), Eq(TRUE))
+            << L"GetLastError() == " << GetLastError();
     }
 }
 
@@ -41,13 +43,8 @@ bool NullFsDriverEnvironment::isUserAdmin()
     BOOL b;
     SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
     PSID AdministratorsGroup;
-    b = AllocateAndInitializeSid(
-        &NtAuthority,
-        2,
-        SECURITY_BUILTIN_DOMAIN_RID,
-        DOMAIN_ALIAS_RID_ADMINS,
-        0, 0, 0, 0, 0, 0,
-        &AdministratorsGroup);
+    b = AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0,
+                                 0, &AdministratorsGroup);
     if (b)
     {
         if (!CheckTokenMembership(nullptr, AdministratorsGroup, &b))

@@ -13,10 +13,8 @@
 // Function implementations
 //
 
-_Dispatch_type_(IRP_MJ_CLOSE)
-_Function_class_(IRP_MJ_CLOSE)
-_Function_class_(DRIVER_DISPATCH)
-NTSTATUS NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+_Dispatch_type_(IRP_MJ_CLOSE) _Function_class_(IRP_MJ_CLOSE) _Function_class_(DRIVER_DISPATCH) NTSTATUS
+    NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
     PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);

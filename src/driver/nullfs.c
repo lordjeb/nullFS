@@ -4,15 +4,13 @@
 //#include <dontuse.h>
 //#include <suppress.h>
 
-#pragma prefast(disable:__WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode")
-
+#pragma prefast(disable : __WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode")
 
 // ---------------------------------------------------------------------------
 // Global variables
 //
 
 NfGlobalData globalData;
-
 
 // ---------------------------------------------------------------------------
 // Function prototypes
@@ -30,7 +28,6 @@ void NfUninitializeDiskDeviceObject();
 void NfUninitializeFileSystemDeviceObject();
 void NfUninitializeGlobals();
 
-
 // ---------------------------------------------------------------------------
 // Assign text sections for each routine.
 //
@@ -45,7 +42,6 @@ void NfUninitializeGlobals();
 #pragma alloc_text(PAGE, NfUninitializeFileSystemDeviceObject)
 #pragma alloc_text(PAGE, NfUninitializeGlobals)
 #endif
-
 
 // ---------------------------------------------------------------------------
 // Function implementations
@@ -114,7 +110,8 @@ NTSTATUS NfInitializeFileSystemDeviceObject()
 
     ASSERT(globalData.driverObject);
 
-    rc = IoCreateDevice(globalData.driverObject, 0, &driverDeviceName, NF_DEVICE_TYPE, 0, FALSE, &globalData.fileSystemDeviceObject);
+    rc = IoCreateDevice(globalData.driverObject, 0, &driverDeviceName, NF_DEVICE_TYPE, 0, FALSE,
+                        &globalData.fileSystemDeviceObject);
     FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
     SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
 
@@ -139,7 +136,8 @@ NTSTATUS NfInitializeDiskDeviceObject()
 
     ASSERT(globalData.driverObject);
 
-    rc = IoCreateDevice(globalData.driverObject, 0, &driverDeviceName, FILE_DEVICE_DISK, 0, FALSE, &globalData.diskDeviceObject);
+    rc = IoCreateDevice(globalData.driverObject, 0, &driverDeviceName, FILE_DEVICE_DISK, 0, FALSE,
+                        &globalData.diskDeviceObject);
     FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
     SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED);
 
@@ -157,25 +155,27 @@ void NfInitializeFsdDispatch()
     ASSERT(globalData.driverObject);
 
 #pragma warning(push)
-#pragma warning(disable: 28175)
+#pragma warning(disable : 28175)
     globalData.driverObject->MajorFunction[IRP_MJ_CREATE] = (PDRIVER_DISPATCH)NfFsdCreate;
     globalData.driverObject->MajorFunction[IRP_MJ_CLOSE] = (PDRIVER_DISPATCH)NfFsdClose;
-    //globalData.driverObject->MajorFunction[IRP_MJ_READ] = (PDRIVER_DISPATCH)NfFsdRead;
-    //globalData.driverObject->MajorFunction[IRP_MJ_WRITE] = (PDRIVER_DISPATCH)NfFsdWrite;
-    //globalData.driverObject->MajorFunction[IRP_MJ_QUERY_INFORMATION] = (PDRIVER_DISPATCH)NfFsdQueryInformation;
-    //globalData.driverObject->MajorFunction[IRP_MJ_SET_INFORMATION] = (PDRIVER_DISPATCH)NfFsdSetInformation;
-    //globalData.driverObject->MajorFunction[IRP_MJ_QUERY_EA] = (PDRIVER_DISPATCH)NfFsdQueryEa;
-    //globalData.driverObject->MajorFunction[IRP_MJ_SET_EA] = (PDRIVER_DISPATCH)NfFsdSetEa;
-    //globalData.driverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS] = (PDRIVER_DISPATCH)NfFsdFlushBuffers;
-    //globalData.driverObject->MajorFunction[IRP_MJ_QUERY_VOLUME_INFORMATION] = (PDRIVER_DISPATCH)NfFsdQueryVolumeInformation;
-    //globalData.driverObject->MajorFunction[IRP_MJ_SET_VOLUME_INFORMATION] = (PDRIVER_DISPATCH)NfFsdSetVolumeInformation;
+    // globalData.driverObject->MajorFunction[IRP_MJ_READ] = (PDRIVER_DISPATCH)NfFsdRead;
+    // globalData.driverObject->MajorFunction[IRP_MJ_WRITE] = (PDRIVER_DISPATCH)NfFsdWrite;
+    // globalData.driverObject->MajorFunction[IRP_MJ_QUERY_INFORMATION] = (PDRIVER_DISPATCH)NfFsdQueryInformation;
+    // globalData.driverObject->MajorFunction[IRP_MJ_SET_INFORMATION] = (PDRIVER_DISPATCH)NfFsdSetInformation;
+    // globalData.driverObject->MajorFunction[IRP_MJ_QUERY_EA] = (PDRIVER_DISPATCH)NfFsdQueryEa;
+    // globalData.driverObject->MajorFunction[IRP_MJ_SET_EA] = (PDRIVER_DISPATCH)NfFsdSetEa;
+    // globalData.driverObject->MajorFunction[IRP_MJ_FLUSH_BUFFERS] = (PDRIVER_DISPATCH)NfFsdFlushBuffers;
+    // globalData.driverObject->MajorFunction[IRP_MJ_QUERY_VOLUME_INFORMATION] =
+    // (PDRIVER_DISPATCH)NfFsdQueryVolumeInformation;
+    // globalData.driverObject->MajorFunction[IRP_MJ_SET_VOLUME_INFORMATION] =
+    // (PDRIVER_DISPATCH)NfFsdSetVolumeInformation;
     globalData.driverObject->MajorFunction[IRP_MJ_CLEANUP] = (PDRIVER_DISPATCH)NfFsdCleanup;
-    //globalData.driverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = (PDRIVER_DISPATCH)NfFsdDirectoryControl;
-    //globalData.driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)NfFsdFileSystemControl;
-    //globalData.driverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = (PDRIVER_DISPATCH)NfFsdLockControl;
+    // globalData.driverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = (PDRIVER_DISPATCH)NfFsdDirectoryControl;
+    // globalData.driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)NfFsdFileSystemControl;
+    // globalData.driverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = (PDRIVER_DISPATCH)NfFsdLockControl;
     globalData.driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)NfFsdDeviceControl;
-    //globalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
-    //globalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
+    // globalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
+    // globalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
 #pragma warning(pop)
 }
 

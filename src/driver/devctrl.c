@@ -14,10 +14,9 @@
 // Function implementations
 //
 
-_Dispatch_type_(IRP_MJ_DEVICE_CONTROL)
-_Function_class_(IRP_MJ_DEVICE_CONTROL)
-_Function_class_(DRIVER_DISPATCH)
-NTSTATUS NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+_Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
+    _Function_class_(DRIVER_DISPATCH) NTSTATUS
+    NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
     PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
@@ -41,11 +40,11 @@ NTSTATUS NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP
                 ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
                 IoUnregisterFileSystem(globalData.fileSystemDeviceObject);
 
-                // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks for this
-                // undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the checks for
-                // reference counts and attached devices and all that.
-#pragma warning(suppress: 28175)
-#pragma warning(suppress: 28176)
+                // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks for
+                // this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the checks
+                // for reference counts and attached devices and all that.
+#pragma warning(suppress : 28175)
+#pragma warning(suppress : 28176)
                 globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
             }
 

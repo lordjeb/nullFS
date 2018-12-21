@@ -1,11 +1,10 @@
 #pragma once
 #include <ntifs.h>
 
-
-#define NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED       0x01
-#define NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED      0x02
-#define NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED      0x04
-#define NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED     0x08
+#define NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED 0x01
+#define NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED 0x02
+#define NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED 0x04
+#define NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED 0x08
 #define NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED 0x10
 #define NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED 0x20
 
@@ -27,12 +26,10 @@ typedef struct _NfGlobalData
 
 extern NfGlobalData globalData;
 
-
 typedef struct _NfVolumeControlBlock
 {
     ULONG n;
 } NfVolumeControlBlock;
-
 
 // The Volume Device Object is an I/O system device object with a workqueue and an VCB record
 // appended to the end. There are multiple of these records, one for every mounted volume, and

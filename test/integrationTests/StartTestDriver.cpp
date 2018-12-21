@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "StartTestDriver.h"
 
-template<typename Fn>
+template <typename Fn>
 DWORD waitForServiceStatus(const win32cpp::unique_service_handle& service, Fn fn)
 {
     SERVICE_STATUS status = { 0 };
@@ -13,8 +13,7 @@ DWORD waitForServiceStatus(const win32cpp::unique_service_handle& service, Fn fn
     return status.dwCurrentState;
 }
 
-StartTestDriver::StartTestDriver(const std::wstring& serviceName)
-    : serviceName_{ serviceName }
+StartTestDriver::StartTestDriver(const std::wstring& serviceName) : serviceName_{ serviceName }
 {
 }
 
