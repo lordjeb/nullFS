@@ -1,17 +1,18 @@
 #pragma once
-#include <gtest/gtest.h>
-#include "TestDriver.h"
+#include "InstallTestDriver.h"
+#include "StartTestDriver.h"
 
 class NullFsDriverEnvironment : public ::testing::Environment
 {
 public:
     NullFsDriverEnvironment();
-    virtual ~NullFsDriverEnvironment();
+
     virtual void SetUp();
     virtual void TearDown();
-    bool isUserAdmin();
     std::wstring getWorkingDirectory();
+    bool isUserAdmin();
+
 private:
-    unsigned long flags{ 0 };
-    TestDriver testDriver_;
+    InstallTestDriver installTestDriver_;
+    StartTestDriver startTestDriver_;
 };

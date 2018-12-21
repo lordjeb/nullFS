@@ -1,55 +1,31 @@
+#include "pch.h"
 #include "nullFsDriverEnvironment.h"
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
-#include <win32cpp/error.h>
-#include <win32cpp/handle.h>
-#include <win32cpp/string_extensions.h>
-#include "TestDriver.h"
 #include "../../src/driver/ioctl.h"
 
 using ::testing::Eq;
 
-enum
-{
-    NULL_FS_DRIVER_ENVIRONMENT_INSTALLED = 0x01,
-    NULL_FS_DRIVER_ENVIRONMENT_STARTED = 0x02
-};
+constexpr const wchar_t driverServiceName[] = NF_NAME;
 
 NullFsDriverEnvironment::NullFsDriverEnvironment()
-    : testDriver_{ L"nullFS", win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") }
-{
-}
-
-NullFsDriverEnvironment::~NullFsDriverEnvironment()
+    : installTestDriver_{ driverServiceName, win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") },
+    startTestDriver_{ driverServiceName }
 {
 }
 
 void NullFsDriverEnvironment::SetUp()
 {
     ASSERT_TRUE(isUserAdmin());
-
-    testDriver_.install();
-    flags |= NULL_FS_DRIVER_ENVIRONMENT_INSTALLED;
-
-    testDriver_.start();
-    flags |= NULL_FS_DRIVER_ENVIRONMENT_STARTED;
+    installTestDriver_.install();
+    startTestDriver_.start();
 }
 
 void NullFsDriverEnvironment::TearDown()
 {
-    if (flags & NULL_FS_DRIVER_ENVIRONMENT_STARTED)
+    // Send hack IOCTL to allow our FS driver to unload
+    win32cpp::unique_file_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr) };
+    if (hFs)
     {
-        // Send hack IOCTL to allow our FS driver to unload
-        win32cpp::unique_file_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, 0, nullptr) };
-        CHECK_BOOL(bool(hFs));
         EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr), Eq(TRUE)) << L"GetLastError() == " << GetLastError();
-
-        testDriver_.stop();
-    }
-
-    if (flags & NULL_FS_DRIVER_ENVIRONMENT_INSTALLED)
-    {
-        testDriver_.uninstall();
     }
 }
 

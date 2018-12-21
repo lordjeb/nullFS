@@ -1,5 +1,4 @@
-#include <gtest/gtest.h>
-#include <Windows.h>
+#include "pch.h"
 #include "../../src/driver/names.h"
 
 TEST(FileSystemDeviceObjectTests, Can_open)

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <ntifs.h>
 #include "flowControl.h"
 #include "struct.h"
