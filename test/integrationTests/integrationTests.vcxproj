@@ -22,11 +22,11 @@
     <ClCompile Include="integrationTests.cpp" />
     <ClCompile Include="controlDeviceObjectTests.cpp" />
     <ClCompile Include="nullFsDriverEnvironment.cpp" />
-    <ClCompile Include="Service.cpp" />
+    <ClCompile Include="TestDriver.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="nullFsDriverEnvironment.h" />
-    <ClInclude Include="Service.h" />
+    <ClInclude Include="TestDriver.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\externals\googlemock\googlemock.vcxproj">
