@@ -8,6 +8,8 @@ foreach (flag_var CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG)
     string(REPLACE "/RTC1" "" ${flag_var} "${${flag_var}}")
 endforeach()
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 add_subdirectory(src/driver)
 
 option(PACKAGE_TESTS "Build the tests" ON)

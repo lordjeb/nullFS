@@ -7,7 +7,7 @@ using ::testing::Eq;
 constexpr const wchar_t driverServiceName[] = NF_NAME;
 
 NullFsDriverEnvironment::NullFsDriverEnvironment()
-    : installTestDriver_{ driverServiceName, getWorkingDirectory() + L"nullfs.inf" },
+    : installTestDriver_{ driverServiceName, getWorkingDirectory() + L"\\nullfs.inf" },
       startTestDriver_{ driverServiceName }
 {
 }
@@ -22,9 +22,9 @@ void NullFsDriverEnvironment::SetUp()
 void NullFsDriverEnvironment::TearDown()
 {
     // Send hack IOCTL to allow our FS driver to unload
-    wil::unique_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE,
-                                                 nullptr, OPEN_EXISTING, 0, nullptr) };
-    if (hFs)
+    wil::unique_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
+                                       OPEN_EXISTING, 0, nullptr) };
+    if (hFs.is_valid())
     {
         EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr), Eq(TRUE))
             << L"GetLastError() == " << GetLastError();

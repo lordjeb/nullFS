@@ -31,15 +31,15 @@ StartTestDriver::~StartTestDriver()
 wil::unique_schandle StartTestDriver::open(DWORD desiredAccess /*= SERVICE_QUERY_STATUS*/)
 {
     wil::unique_schandle scm{ OpenSCManager(nullptr, nullptr, desiredAccess) };
-    THROW_LAST_ERROR_IF(scm.is_valid());
+    THROW_LAST_ERROR_IF(!scm.is_valid());
     wil::unique_schandle service{ OpenService(scm.get(), serviceName_.c_str(), desiredAccess) };
-    THROW_LAST_ERROR_IF(service.is_valid());
+    THROW_LAST_ERROR_IF(!service.is_valid());
     return service;
 }
 
 void StartTestDriver::start()
 {
-    auto service = open(SERVICE_START);
+    auto service = open(SERVICE_START | SERVICE_QUERY_STATUS);
     if (StartService(service.get(), 0, nullptr))
     {
         auto status = waitForServiceStatus(service.get(), [](DWORD status) { return status != SERVICE_START_PENDING; });
@@ -62,7 +62,7 @@ void StartTestDriver::start()
 
 void StartTestDriver::stop()
 {
-    auto service = open(SERVICE_STOP);
+    auto service = open(SERVICE_STOP | SERVICE_QUERY_STATUS);
     SERVICE_STATUS ss = { 0 };
     THROW_IF_WIN32_BOOL_FALSE(ControlService(service.get(), SERVICE_CONTROL_STOP, &ss));
     waitForServiceStatus(service.get(), [](DWORD status) { return status == SERVICE_STOPPED; });
