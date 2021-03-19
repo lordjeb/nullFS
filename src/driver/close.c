@@ -1,5 +1,5 @@
-#include "pch.h"
 #include <ntifs.h>
+#include "dispatchRoutines.h"
 
 // ---------------------------------------------------------------------------
 // Assign text sections for each routine.

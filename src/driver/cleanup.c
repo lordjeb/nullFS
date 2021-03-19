@@ -1,5 +1,8 @@
-#include "pch.h"
 #include <ntifs.h>
+#include "debug.h"
+#include "support.h"
+#include "flowControl.h"
+#include "dispatchRoutines.h"
 
 // ---------------------------------------------------------------------------
 // Assign text sections for each routine.

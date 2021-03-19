@@ -1,5 +1,5 @@
-#include "pch.h"
 #include "nullFsDriverEnvironment.h"
+#include <wil/resource.h>
 #include "../../src/driver/ioctl.h"
 
 using ::testing::Eq;
@@ -7,7 +7,7 @@ using ::testing::Eq;
 constexpr const wchar_t driverServiceName[] = NF_NAME;
 
 NullFsDriverEnvironment::NullFsDriverEnvironment()
-    : installTestDriver_{ driverServiceName, win32cpp::appendPath(getWorkingDirectory(), L"nullfs.inf") },
+    : installTestDriver_{ driverServiceName, getWorkingDirectory() + L"nullfs.inf" },
       startTestDriver_{ driverServiceName }
 {
 }
@@ -22,7 +22,7 @@ void NullFsDriverEnvironment::SetUp()
 void NullFsDriverEnvironment::TearDown()
 {
     // Send hack IOCTL to allow our FS driver to unload
-    win32cpp::unique_file_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE,
+    wil::unique_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE,
                                                  nullptr, OPEN_EXISTING, 0, nullptr) };
     if (hFs)
     {

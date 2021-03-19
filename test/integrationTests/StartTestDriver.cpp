@@ -1,13 +1,16 @@
-#include "pch.h"
 #include "StartTestDriver.h"
+#include <string>
+#include <wil/resource.h>
+#include <wil/result.h>
+#include <Windows.h>
 
 template <typename Fn>
-DWORD waitForServiceStatus(const win32cpp::unique_service_handle& service, Fn fn)
+DWORD waitForServiceStatus(const SC_HANDLE& hService, Fn fn)
 {
     SERVICE_STATUS status = { 0 };
     do
     {
-        QueryServiceStatus(service.get(), &status);
+        THROW_IF_WIN32_BOOL_FALSE(QueryServiceStatus(hService, &status));
 
     } while (!fn(status.dwCurrentState));
     return status.dwCurrentState;
@@ -25,12 +28,12 @@ StartTestDriver::~StartTestDriver()
     }
 }
 
-win32cpp::unique_service_handle StartTestDriver::open(DWORD desiredAccess /*= SERVICE_QUERY_STATUS*/)
+wil::unique_schandle StartTestDriver::open(DWORD desiredAccess /*= SERVICE_QUERY_STATUS*/)
 {
-    win32cpp::unique_service_handle scm{ OpenSCManager(nullptr, nullptr, desiredAccess) };
-    CHECK_BOOL(bool(scm));
-    win32cpp::unique_service_handle service{ OpenService(scm.get(), serviceName_.c_str(), desiredAccess) };
-    CHECK_BOOL(bool(service));
+    wil::unique_schandle scm{ OpenSCManager(nullptr, nullptr, desiredAccess) };
+    THROW_LAST_ERROR_IF(scm.is_valid());
+    wil::unique_schandle service{ OpenService(scm.get(), serviceName_.c_str(), desiredAccess) };
+    THROW_LAST_ERROR_IF(service.is_valid());
     return service;
 }
 
@@ -39,15 +42,18 @@ void StartTestDriver::start()
     auto service = open(SERVICE_START);
     if (StartService(service.get(), 0, nullptr))
     {
-        auto status = waitForServiceStatus(service, [](DWORD status) { return status != SERVICE_START_PENDING; });
-        CHECK_EQ(status, DWORD{ SERVICE_RUNNING });
+        auto status = waitForServiceStatus(service.get(), [](DWORD status) { return status != SERVICE_START_PENDING; });
+        if (SERVICE_RUNNING != status)
+        {
+            THROW_WIN32(ERROR_SERVICE_NEVER_STARTED);
+        }
     }
     else
     {
         auto dw = GetLastError();
         if (dw != ERROR_SERVICE_ALREADY_RUNNING)
         {
-            CHECK_WIN32(dw);
+            THROW_WIN32(dw);
         }
     }
 
@@ -58,6 +64,6 @@ void StartTestDriver::stop()
 {
     auto service = open(SERVICE_STOP);
     SERVICE_STATUS ss = { 0 };
-    CHECK_BOOL(ControlService(service.get(), SERVICE_CONTROL_STOP, &ss));
-    waitForServiceStatus(service, [](DWORD status) { return status == SERVICE_STOPPED; });
+    THROW_IF_WIN32_BOOL_FALSE(ControlService(service.get(), SERVICE_CONTROL_STOP, &ss));
+    waitForServiceStatus(service.get(), [](DWORD status) { return status == SERVICE_STOPPED; });
 }

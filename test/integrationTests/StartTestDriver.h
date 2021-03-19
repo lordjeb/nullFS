@@ -12,6 +12,6 @@ private:
     bool started_{ false };
     std::wstring serviceName_;
 
-    win32cpp::unique_service_handle open(DWORD desiredAccess = SERVICE_QUERY_STATUS);
+    wil::unique_schandle open(DWORD desiredAccess = SERVICE_QUERY_STATUS);
     void stop();
 };

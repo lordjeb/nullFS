@@ -1,6 +1,9 @@
-#include "pch.h"
 #include <ntifs.h>
 #include "names.h"
+#include "struct.h"
+#include "debug.h"
+#include "flowControl.h"
+#include "dispatchRoutines.h"
 //#include <dontuse.h>
 //#include <suppress.h>
 

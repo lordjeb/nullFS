@@ -1,5 +1,5 @@
-#include "pch.h"
 #include "InstallTestDriver.h"
+#include <string>
 #include <SetupAPI.h>
 
 #define QUOTE L'\"'
@@ -34,7 +34,7 @@ void InstallTestDriver::install()
 void InstallTestDriver::installInfSection(const std::wstring& section)
 {
     auto command = section + L" 128 " + ensureQuoted(infFile_);
-    ::InstallHinfSection(nullptr, nullptr, command.c_str(), 0);
+    InstallHinfSection(nullptr, nullptr, command.c_str(), 0);
 }
 
 void InstallTestDriver::uninstall()
