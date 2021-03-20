@@ -1,6 +1,6 @@
-#include <ntifs.h>
 #include "pch.h"
 #include <nullFS/ioctl.h>
+#include "GlobalData.h"
 #include "flowControl.h"
 #include "dispatchRoutines.h"
 
@@ -12,57 +12,61 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
     _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
     NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
-    NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
-    PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
-
     PAGED_CODE();
 
-    NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
-
-    if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
+    NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
+    __try
     {
-        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: FileSystemDO\n");
+        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        switch (currentIrpStackLocation->Parameters.DeviceIoControl.IoControlCode)
+        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL [FileObj=%08p]\n",
+                   currentIrpStackLocation->FileObject);
+
+        if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
         {
-#if defined(DBG)
-        case IOCTL_SHUTDOWN:
-            NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: IOCTL_SHUTDOWN\n");
+            NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: FileSystemDO\n");
 
-            if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
+            switch (currentIrpStackLocation->Parameters.DeviceIoControl.IoControlCode)
             {
-                ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
-                IoUnregisterFileSystem(globalData.fileSystemDeviceObject);
+#if defined(DBG)
+            case IOCTL_SHUTDOWN:
+                NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: IOCTL_SHUTDOWN\n");
 
-                // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks for
-                // this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the checks
-                // for reference counts and attached devices and all that.
+                if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
+                {
+                    ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
+                    IoUnregisterFileSystem(globalData.fileSystemDeviceObject);
+
+                    // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks
+                    // for this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the
+                    // checks for reference counts and attached devices and all that.
 #pragma warning(suppress : 28175)
 #pragma warning(suppress : 28176)
-                globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
-            }
+                    globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
+                }
 
-            rc = STATUS_SUCCESS;
-            break;
+                rc = STATUS_SUCCESS;
+                break;
 #endif
 
-        default:
-            NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: Unknown DeviceIoControl.IoControlCode\n");
-            break;
+            default:
+                NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: Unknown DeviceIoControl.IoControlCode\n");
+                break;
+            }
+
+            LEAVE();
         }
 
-        FUNCTION_EXIT;
-    }
+        if (NfDeviceIsDiskDeviceObject(volumeDeviceObject))
+        {
+            NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: DiskDO\n");
+            LEAVE();
+        }
 
-    if (NfDeviceIsDiskDeviceObject(volumeDeviceObject))
+        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: Unrecognized device object\n");
+    }
+    __finally
     {
-        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: DiskDO\n");
-        FUNCTION_EXIT;
+        return NfCompleteRequest(irp, rc, 0);
     }
-
-    NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: Unrecognized device object\n");
-
-function_exit:
-
-    return NfCompleteRequest(irp, rc, 0);
 }

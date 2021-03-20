@@ -1,4 +1,3 @@
-#include <ntifs.h>
 #include "pch.h"
 #include "flowControl.h"
 #include "dispatchRoutines.h"
@@ -11,40 +10,44 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
     _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
     NfFsdFileSystemControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
-    NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
-    PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
-
     PAGED_CODE();
 
-    NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
-
-    if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
+    NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
+    __try
     {
-        NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: FileSystemDO\n");
+        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        switch (currentIrpStackLocation->MinorFunction)
+        NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL [FileObj=%08p]\n",
+                   currentIrpStackLocation->FileObject);
+
+        if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
         {
-        case IRP_MN_MOUNT_VOLUME:
-            NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: IRP_MN_MOUNT_VOLUME\n");
-            break;
+            NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: FileSystemDO\n");
 
-        default:
-            NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: Unknown MinorFunction\n");
-            break;
+            switch (currentIrpStackLocation->MinorFunction)
+            {
+            case IRP_MN_MOUNT_VOLUME:
+                NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: IRP_MN_MOUNT_VOLUME\n");
+                break;
+
+            default:
+                NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: Unknown MinorFunction\n");
+                break;
+            }
+
+            LEAVE();
         }
 
-        FUNCTION_EXIT;
-    }
+        if (NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
+        {
+            NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: DiskDO\n");
+            LEAVE();
+        }
 
-    if (NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
+        NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: Unrecognized device object\n");
+    }
+    __finally
     {
-        NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: DiskDO\n");
-        FUNCTION_EXIT;
+        return NfCompleteRequest(irp, rc, 0);
     }
-
-    NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: Unrecognized device object\n");
-
-function_exit:
-
-    return NfCompleteRequest(irp, rc, 0);
 }

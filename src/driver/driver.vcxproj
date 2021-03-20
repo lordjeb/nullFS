@@ -148,7 +148,9 @@
     <ClInclude Include="debug.h" />
     <ClInclude Include="dispatchRoutines.h" />
     <ClInclude Include="flowControl.h" />
+    <ClInclude Include="GlobalData.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="pooltags.h" />
     <ClInclude Include="struct.h" />
     <ClInclude Include="support.h" />
   </ItemGroup>

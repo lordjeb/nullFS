@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "support.h"
-#include "struct.h"
+#include "GlobalData.h"
 
 NTSTATUS NfCompleteRequest(_In_ PIRP irp, NTSTATUS status, ULONG_PTR information)
 {
