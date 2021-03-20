@@ -60,8 +60,8 @@ AddReg = nullFS.AddRegistry
 ;
 
 [nullFS.AddRegistry]
-HKR,,"DebugFlags",0x00010001 ,0x0
-HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,Parameters,"BreakOnLoad",0x00010001,0x0
+HKR,Parameters,"BreakOnNtStatus",0x00010001,0x0
 
 ;
 ; Copy Files

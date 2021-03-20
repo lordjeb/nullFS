@@ -186,34 +186,46 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
     NTSTATUS rc{ STATUS_SUCCESS };
     __try
     {
-        OBJECT_ATTRIBUTES oa = RTL_CONSTANT_OBJECT_ATTRIBUTES(registryPath, OBJ_CASE_INSENSITIVE);
-        wil::unique_kernel_handle key;
-        rc = ZwOpenKey(key.addressof(), KEY_READ, &oa);
+        OBJECT_ATTRIBUTES oaDriverKey = RTL_CONSTANT_OBJECT_ATTRIBUTES(registryPath, OBJ_CASE_INSENSITIVE);
+        wil::unique_kernel_handle driverKey;
+        rc = ZwOpenKey(driverKey.addressof(), KEY_READ, &oaDriverKey);
         if (STATUS_SUCCESS == rc)
         {
-            ULONG cbKvpi = FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + sizeof(ULONG);
-            unique_registry_parameter_data kvpi{ static_cast<KEY_VALUE_PARTIAL_INFORMATION*>(
-                ExAllocatePool2(POOL_FLAG_PAGED, cbKvpi, TAG_REGISTRY_PARAMETER)) };
-            if (!kvpi.is_valid())
-            {
-                LEAVE_WITH(rc = STATUS_INSUFFICIENT_RESOURCES);
-            }
-
-            UNICODE_STRING breakOnLoadValueName = RTL_CONSTANT_STRING(L"BreakOnLoad");
-            ULONG returnLength;
-            rc = ZwQueryValueKey(key.get(), &breakOnLoadValueName, KeyValuePartialInformation, kvpi.get(), cbKvpi,
-                                 &returnLength);
+            UNICODE_STRING parametersKeyName = RTL_CONSTANT_STRING(L"Parameters");
+            OBJECT_ATTRIBUTES oaParametersKey{ sizeof(OBJECT_ATTRIBUTES),
+                                               driverKey.get(),
+                                               RTL_CONST_CAST(PUNICODE_STRING)(&parametersKeyName),
+                                               OBJ_CASE_INSENSITIVE,
+                                               NULL,
+                                               NULL };
+            wil::unique_kernel_handle parametersKey;
+            rc = ZwOpenKey(parametersKey.addressof(), KEY_READ, &oaParametersKey);
             if (STATUS_SUCCESS == rc)
             {
-                globalData.Parameters.BreakOnLoad = (0 != *(&kvpi.get()->Data[0]));
-            }
+                ULONG cbKvpi = FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + sizeof(ULONG);
+                unique_registry_parameter_data kvpi{ static_cast<KEY_VALUE_PARTIAL_INFORMATION*>(
+                    ExAllocatePool2(POOL_FLAG_PAGED, cbKvpi, TAG_REGISTRY_PARAMETER)) };
+                if (!kvpi.is_valid())
+                {
+                    LEAVE_WITH(rc = STATUS_INSUFFICIENT_RESOURCES);
+                }
 
-            UNICODE_STRING breakOnNtStatusValueName = RTL_CONSTANT_STRING(L"BreakOnNtStatus");
-            rc = ZwQueryValueKey(key.get(), &breakOnNtStatusValueName, KeyValuePartialInformation, kvpi.get(), cbKvpi,
-                                 &returnLength);
-            if (STATUS_SUCCESS == rc)
-            {
-                globalData.Parameters.BreakOnNtStatus = *(&kvpi.get()->Data[0]);
+                UNICODE_STRING breakOnLoadValueName = RTL_CONSTANT_STRING(L"BreakOnLoad");
+                ULONG returnLength;
+                rc = ZwQueryValueKey(parametersKey.get(), &breakOnLoadValueName, KeyValuePartialInformation, kvpi.get(),
+                                     cbKvpi, &returnLength);
+                if (STATUS_SUCCESS == rc)
+                {
+                    globalData.Parameters.BreakOnLoad = (0 != *(&kvpi.get()->Data[0]));
+                }
+
+                UNICODE_STRING breakOnNtStatusValueName = RTL_CONSTANT_STRING(L"BreakOnNtStatus");
+                rc = ZwQueryValueKey(parametersKey.get(), &breakOnNtStatusValueName, KeyValuePartialInformation,
+                                     kvpi.get(), cbKvpi, &returnLength);
+                if (STATUS_SUCCESS == rc)
+                {
+                    globalData.Parameters.BreakOnNtStatus = *(&kvpi.get()->Data[0]);
+                }
             }
         }
 
