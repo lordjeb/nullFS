@@ -26,6 +26,7 @@ target_precompile_headers(
 # TODO: Should be a better way to get this include directory, if we are including the cmake for wil?
 target_include_directories(nullFsIntegrationTests
     PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/include
     ${CMAKE_SOURCE_DIR}/submodules/wil/include
     )
 target_link_libraries(nullFsIntegrationTests 

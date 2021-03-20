@@ -1,5 +1,5 @@
 #include <ntifs.h>
-#include "ioctl.h"
+#include <nullFS/ioctl.h>
 #include "flowControl.h"
 #include "dispatchRoutines.h"
 

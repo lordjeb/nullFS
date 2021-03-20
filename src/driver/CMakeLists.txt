@@ -13,8 +13,8 @@ wdk_add_driver(nullfs
     dispatchRoutines.h     
     flowControl.h          
     fsctrl.c               
-    ioctl.h                
-    names.h                
+    ../include/nullFS/ioctl.h                
+    ../include/nullFS/names.h                
     nullfs.c               
     struct.h               
     support.c              
@@ -27,4 +27,9 @@ target_precompile_headers(
         "debug.h"
         "support.h"
         "flowControl.h"
+    )
+target_include_directories(nullfs
+    PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/include
+    ${CMAKE_SOURCE_DIR}/submodules/wil/include
     )

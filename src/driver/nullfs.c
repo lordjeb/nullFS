@@ -1,11 +1,9 @@
 #include <ntifs.h>
-#include "names.h"
+#include <nullFS/names.h>
 #include "struct.h"
 #include "debug.h"
 #include "flowControl.h"
 #include "dispatchRoutines.h"
-//#include <dontuse.h>
-//#include <suppress.h>
 
 #pragma prefast(disable : __WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode")
 

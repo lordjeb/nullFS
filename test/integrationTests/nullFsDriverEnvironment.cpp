@@ -1,6 +1,6 @@
 #include "nullFsDriverEnvironment.h"
 #include <wil/resource.h>
-#include "../../src/driver/ioctl.h"
+#include <nullFS/ioctl.h>
 
 using ::testing::Eq;
 

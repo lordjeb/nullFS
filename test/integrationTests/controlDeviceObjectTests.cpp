@@ -1,5 +1,5 @@
 #include <wil/resource.h>
-#include "../../src/driver/names.h"
+#include <nullFS/names.h>
 
 using ::testing::Eq;
 
