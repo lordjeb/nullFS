@@ -1,4 +1,6 @@
 #include <ntifs.h>
+#define WIL_KERNEL_MODE
+#include <wil/resource.h>
 #include <nullFS/names.h>
 #include "struct.h"
 #include "debug.h"
@@ -70,9 +72,9 @@ void NfUninitializeGlobals()
     }
 }
 
-_Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ [[maybe_unused]] PDRIVER_OBJECT driverObject)
+_Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverObject)
 {
-    // UNREFERENCED_PARAMETER(driverObject);
+    UNREFERENCED_PARAMETER(driverObject);
 
     PAGED_CODE();
 
@@ -181,13 +183,28 @@ function_exit:
     return rc;
 }
 
+NTSTATUS NfInitializeParameters(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING registryPath)
+{
+    OBJECT_ATTRIBUTES oa = RTL_CONSTANT_OBJECT_ATTRIBUTES(registryPath, OBJ_CASE_INSENSITIVE);
+    wil::unique_kernel_handle key;
+    NTSTATUS rc = ZwOpenKey(key.addressof(), KEY_READ, &oa);
+    FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
+
+    // Read break on load!
+    // Read break on status (and integrate into error handling macros)
+
+function_exit:
+
+    return rc;
+}
+
 extern "C" NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING registryPath)
 {
     NTSTATUS rc = STATUS_SUCCESS;
 
     UNREFERENCED_PARAMETER(registryPath);
 
-    NfDbgPrint(DPFLTR_INFO_LEVEL, "DriverEntry [Build: %s]\n", __TIMESTAMP__);
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "DriverEntry [Build timestamp: %s]\n", __TIMESTAMP__);
 #if defined(DBG)
     DbgBreakPoint();
 #endif
@@ -195,17 +212,18 @@ extern "C" NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_
     rc = NfInitializeGlobals(driverObject);
     FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
 
-    // Initialize the driver object
+    rc = NfInitializeParameters(driverObject, registryPath);
+    FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
+
+    // Initialize the driver object,
     NfInitializeFsdDispatch();
+    // Allow unload for debugging purposes only
 #if defined(DBG)
     driverObject->DriverUnload = NfDriverUnload;
 #endif
 
     rc = NfInitializeDiskDeviceObject();
-    if (!NT_SUCCESS(rc))
-    {
-        FUNCTION_EXIT;
-    }
+    FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
 
     // Create the device object
     rc = NfInitializeFileSystemDeviceObject();
