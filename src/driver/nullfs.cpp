@@ -14,85 +14,65 @@
 NfGlobalData globalData;
 
 // ---------------------------------------------------------------------------
-// Function prototypes
+// Driver unload functions
 //
 
-DRIVER_INITIALIZE DriverEntry;
-
-NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING registryPath);
-_Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverObject);
-NTSTATUS NfInitializeDiskDeviceObject();
-NTSTATUS NfInitializeFileSystemDeviceObject();
-void NfInitializeFsdDispatch();
-NTSTATUS NfInitializeGlobals(_In_ PDRIVER_OBJECT driverObject);
-void NfUninitializeDiskDeviceObject();
-void NfUninitializeFileSystemDeviceObject();
-void NfUninitializeGlobals();
-
-// ---------------------------------------------------------------------------
-// Assign text sections for each routine.
-//
-
-#if defined(ALLOC_PRAGMA)
-#pragma alloc_text(INIT, DriverEntry)
-#pragma alloc_text(PAGE, NfDriverUnload)
-#pragma alloc_text(INIT, NfInitializeFsdDispatch)
-#pragma alloc_text(INIT, NfInitializeFileSystemDeviceObject)
-#pragma alloc_text(INIT, NfInitializeGlobals)
-#pragma alloc_text(PAGE, NfUninitializeDiskDeviceObject)
-#pragma alloc_text(PAGE, NfUninitializeFileSystemDeviceObject)
-#pragma alloc_text(PAGE, NfUninitializeGlobals)
-#endif
-
-// ---------------------------------------------------------------------------
-// Function implementations
-//
-
-NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING registryPath)
+void NfUninitializeFileSystemDeviceObject()
 {
-    NTSTATUS rc = STATUS_SUCCESS;
+    UNICODE_STRING symbolicLinkName;
 
-    UNREFERENCED_PARAMETER(registryPath);
+    PAGED_CODE();
 
-    NfDbgPrint(DPFLTR_INFO_LEVEL, "DriverEntry [Build: %s]\n", __TIMESTAMP__);
-#if defined(DBG)
-    DbgBreakPoint();
-#endif
-
-    rc = NfInitializeGlobals(driverObject);
-    FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
-
-    // Initialize the driver object
-    NfInitializeFsdDispatch(driverObject);
-#if defined(DBG)
-    driverObject->DriverUnload = NfDriverUnload;
-#endif
-
-    rc = NfInitializeDiskDeviceObject(driverObject);
-    if (!NT_SUCCESS(rc))
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED))
     {
-        FUNCTION_EXIT;
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
+        RtlInitUnicodeString(&symbolicLinkName, NF_DRIVER_SYMBOLIC_NAME);
+        IoDeleteSymbolicLink(&symbolicLinkName);
     }
 
-    // Create the device object
-    rc = NfInitializeFileSystemDeviceObject(driverObject);
-    FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
-
-function_exit:
-
-    if (!NT_SUCCESS(rc))
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED))
     {
-        NfDbgPrint(DPFLTR_ERROR_LEVEL, "DriverEntry failed (%08x)\n", rc);
-
-        NfDriverUnload(driverObject);
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
+        IoDeleteDevice(globalData.fileSystemDeviceObject);
+        globalData.fileSystemDeviceObject = NULL;
     }
-
-    return rc;
 }
 
-_Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverObject)
+void NfUninitializeDiskDeviceObject()
 {
-    UNREFERENCED_PARAMETER(driverObject);
+    UNICODE_STRING symbolicLinkName;
+
+    PAGED_CODE();
+
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED))
+    {
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED);
+        RtlInitUnicodeString(&symbolicLinkName, NF_DRIVER_DISK_SYMBOLIC_NAME);
+        IoDeleteSymbolicLink(&symbolicLinkName);
+    }
+
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED))
+    {
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED);
+        IoDeleteDevice(globalData.diskDeviceObject);
+        globalData.diskDeviceObject = NULL;
+    }
+}
+
+void NfUninitializeGlobals()
+{
+    PAGED_CODE();
+
+    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
+    {
+        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
+        ExDeleteResourceLite(&globalData.lock);
+    }
+}
+
+_Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ [[maybe_unused]] PDRIVER_OBJECT driverObject)
+{
+    // UNREFERENCED_PARAMETER(driverObject);
 
     PAGED_CODE();
 
@@ -102,6 +82,10 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
     NfUninitializeDiskDeviceObject();
     NfUninitializeGlobals();
 }
+
+// ---------------------------------------------------------------------------
+// Driver entry functions
+//
 
 NTSTATUS NfInitializeFileSystemDeviceObject()
 {
@@ -197,55 +181,44 @@ function_exit:
     return rc;
 }
 
-void NfUninitializeFileSystemDeviceObject()
+extern "C" NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING registryPath)
 {
-    UNICODE_STRING symbolicLinkName;
+    NTSTATUS rc = STATUS_SUCCESS;
 
-    PAGED_CODE();
+    UNREFERENCED_PARAMETER(registryPath);
 
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED))
+    NfDbgPrint(DPFLTR_INFO_LEVEL, "DriverEntry [Build: %s]\n", __TIMESTAMP__);
+#if defined(DBG)
+    DbgBreakPoint();
+#endif
+
+    rc = NfInitializeGlobals(driverObject);
+    FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
+
+    // Initialize the driver object
+    NfInitializeFsdDispatch();
+#if defined(DBG)
+    driverObject->DriverUnload = NfDriverUnload;
+#endif
+
+    rc = NfInitializeDiskDeviceObject();
+    if (!NT_SUCCESS(rc))
     {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
-        RtlInitUnicodeString(&symbolicLinkName, NF_DRIVER_SYMBOLIC_NAME);
-        IoDeleteSymbolicLink(&symbolicLinkName);
+        FUNCTION_EXIT;
     }
 
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED))
+    // Create the device object
+    rc = NfInitializeFileSystemDeviceObject();
+    FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
+
+function_exit:
+
+    if (!NT_SUCCESS(rc))
     {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
-        IoDeleteDevice(globalData.fileSystemDeviceObject);
-        globalData.fileSystemDeviceObject = NULL;
-    }
-}
+        NfDbgPrint(DPFLTR_ERROR_LEVEL, "DriverEntry failed (%08x)\n", rc);
 
-void NfUninitializeDiskDeviceObject()
-{
-    UNICODE_STRING symbolicLinkName;
-
-    PAGED_CODE();
-
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED))
-    {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED);
-        RtlInitUnicodeString(&symbolicLinkName, NF_DRIVER_DISK_SYMBOLIC_NAME);
-        IoDeleteSymbolicLink(&symbolicLinkName);
+        NfDriverUnload(driverObject);
     }
 
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED))
-    {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED);
-        IoDeleteDevice(globalData.diskDeviceObject);
-        globalData.diskDeviceObject = NULL;
-    }
-}
-
-void NfUninitializeGlobals()
-{
-    PAGED_CODE();
-
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
-    {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
-        ExDeleteResourceLite(&globalData.lock);
-    }
+    return rc;
 }

@@ -4,20 +4,19 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/submodules/FindWDK/cmake")
 find_package(WDK REQUIRED)
 
 wdk_add_driver(nullfs
-    nullfs.c
-    cleanup.c              
-    close.c                
-    create.c               
+    cleanup.cpp             
+    close.cpp              
+    create.cpp               
     debug.h                
-    devctrl.c              
+    devctrl.cpp              
     dispatchRoutines.h     
     flowControl.h          
-    fsctrl.c               
+    fsctrl.cpp               
     ../include/nullFS/ioctl.h                
     ../include/nullFS/names.h                
-    nullfs.c               
+    nullfs.cpp              
     struct.h               
-    support.c              
+    support.cpp              
     support.h
     )
 target_precompile_headers(

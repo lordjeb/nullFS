@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.19)
 
 project(nullFS)
 
+set(CMAKE_CXX_STANDARD 17)
+
 # Remove /RTC1 from the compile flags because it is not valid for kernel mode
 # Any other project that requires it can include it individually
 foreach (flag_var CMAKE_C_FLAGS_DEBUG CMAKE_CXX_FLAGS_DEBUG)

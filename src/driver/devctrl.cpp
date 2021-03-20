@@ -4,19 +4,11 @@
 #include "dispatchRoutines.h"
 
 // ---------------------------------------------------------------------------
-// Assign text sections for each routine.
-//
-
-#if defined(ALLOC_PRAGMA)
-#pragma alloc_text(PAGE, NfFsdDeviceControl)
-#endif
-
-// ---------------------------------------------------------------------------
 // Function implementations
 //
 
 _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
-    _Function_class_(DRIVER_DISPATCH) NTSTATUS
+    _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
     NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
 {
     NTSTATUS rc = STATUS_ILLEGAL_FUNCTION;
