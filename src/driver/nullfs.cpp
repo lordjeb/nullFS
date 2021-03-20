@@ -34,7 +34,7 @@ void NfUninitializeFileSystemDeviceObject()
     {
         ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
         IoDeleteDevice(globalData.fileSystemDeviceObject);
-        globalData.fileSystemDeviceObject = NULL;
+        globalData.fileSystemDeviceObject = nullptr;
     }
 }
 
@@ -55,7 +55,7 @@ void NfUninitializeDiskDeviceObject()
     {
         ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED);
         IoDeleteDevice(globalData.diskDeviceObject);
-        globalData.diskDeviceObject = NULL;
+        globalData.diskDeviceObject = nullptr;
     }
 }
 
