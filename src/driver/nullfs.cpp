@@ -70,7 +70,7 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
     UNREFERENCED_PARAMETER(driverObject);
     PAGED_CODE();
 
-    NfDbgPrint(DPFLTR_INFO_LEVEL, "NfDriverUnload\n");
+    NfDbgPrint(DPFLTR_DRIVER_ENTRY, "NfDriverUnload\n");
 
     NfUninitializeFileSystemDeviceObject();
     NfUninitializeDiskDeviceObject();
@@ -189,32 +189,35 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
         OBJECT_ATTRIBUTES oa = RTL_CONSTANT_OBJECT_ATTRIBUTES(registryPath, OBJ_CASE_INSENSITIVE);
         wil::unique_kernel_handle key;
         rc = ZwOpenKey(key.addressof(), KEY_READ, &oa);
-        LEAVE_IF_NOT_SUCCESS(rc);
-
-        ULONG cbKvpi = FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + sizeof(ULONG);
-        unique_registry_parameter_data kvpi{ static_cast<KEY_VALUE_PARTIAL_INFORMATION*>(
-            ExAllocatePool2(POOL_FLAG_PAGED, cbKvpi, TAG_REGISTRY_PARAMETER)) };
-        if (!kvpi.is_valid())
-        {
-            LEAVE_WITH(rc = STATUS_INSUFFICIENT_RESOURCES);
-        }
-
-        UNICODE_STRING breakOnLoadValueName = RTL_CONSTANT_STRING(L"BreakOnLoad");
-        ULONG returnLength;
-        rc = ZwQueryValueKey(key.get(), &breakOnLoadValueName, KeyValuePartialInformation, kvpi.get(), cbKvpi,
-                             &returnLength);
         if (STATUS_SUCCESS == rc)
         {
-            globalData.Parameters.BreakOnLoad = (0 != *(&kvpi.get()->Data[0]));
+            ULONG cbKvpi = FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + sizeof(ULONG);
+            unique_registry_parameter_data kvpi{ static_cast<KEY_VALUE_PARTIAL_INFORMATION*>(
+                ExAllocatePool2(POOL_FLAG_PAGED, cbKvpi, TAG_REGISTRY_PARAMETER)) };
+            if (!kvpi.is_valid())
+            {
+                LEAVE_WITH(rc = STATUS_INSUFFICIENT_RESOURCES);
+            }
+
+            UNICODE_STRING breakOnLoadValueName = RTL_CONSTANT_STRING(L"BreakOnLoad");
+            ULONG returnLength;
+            rc = ZwQueryValueKey(key.get(), &breakOnLoadValueName, KeyValuePartialInformation, kvpi.get(), cbKvpi,
+                                 &returnLength);
+            if (STATUS_SUCCESS == rc)
+            {
+                globalData.Parameters.BreakOnLoad = (0 != *(&kvpi.get()->Data[0]));
+            }
+
+            UNICODE_STRING breakOnNtStatusValueName = RTL_CONSTANT_STRING(L"BreakOnNtStatus");
+            rc = ZwQueryValueKey(key.get(), &breakOnNtStatusValueName, KeyValuePartialInformation, kvpi.get(), cbKvpi,
+                                 &returnLength);
+            if (STATUS_SUCCESS == rc)
+            {
+                globalData.Parameters.BreakOnNtStatus = *(&kvpi.get()->Data[0]);
+            }
         }
 
-        UNICODE_STRING breakOnNtStatusValueName = RTL_CONSTANT_STRING(L"BreakOnNtStatus");
-        rc = ZwQueryValueKey(key.get(), &breakOnNtStatusValueName, KeyValuePartialInformation, kvpi.get(), cbKvpi,
-                             &returnLength);
-        if (STATUS_SUCCESS == rc)
-        {
-            globalData.Parameters.BreakOnNtStatus = *(&kvpi.get()->Data[0]);
-        }
+        rc = STATUS_SUCCESS;
     }
     __finally
     {
@@ -229,17 +232,18 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
     {
         UNREFERENCED_PARAMETER(registryPath);
 
-        NfDbgPrint(DPFLTR_INFO_LEVEL, "DriverEntry [Build timestamp: %s]\n", __TIMESTAMP__);
-        if (globalData.Parameters.BreakOnLoad)
-        {
-            DbgBreakPoint();
-        }
+        NfDbgPrint(DPFLTR_DRIVER_ENTRY, "DriverEntry [Build timestamp: %s]\n", __TIMESTAMP__);
 
         rc = NfInitializeGlobals(driverObject);
         LEAVE_IF_NOT_SUCCESS(rc);
 
         rc = NfInitializeParameters(registryPath);
         LEAVE_IF_NOT_SUCCESS(rc);
+
+        if (globalData.Parameters.BreakOnLoad)
+        {
+            DbgBreakPoint();
+        }
 
         // Initialize the driver object,
         NfInitializeFsdDispatch();
@@ -259,7 +263,7 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
     {
         if (!NT_SUCCESS(rc))
         {
-            NfDbgPrint(DPFLTR_ERROR_LEVEL, "DriverEntry failed (%08x)\n", rc);
+            NfDbgPrint(DPFLTR_DRIVER_ENTRY, "DriverEntry failed (%08x)\n", rc);
 
             NfDriverUnload(driverObject);
         }
