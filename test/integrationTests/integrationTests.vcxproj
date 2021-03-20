@@ -103,6 +103,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)src\include;$(SolutionDir)submodules\wil\include;$(SolutionDir)submodules\googletest\googletest\include;$(SolutionDir)submodules\googletest\googlemock\include</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,6 +122,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)src\include;$(SolutionDir)submodules\wil\include;$(SolutionDir)submodules\googletest\googletest\include;$(SolutionDir)submodules\googletest\googlemock\include</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,6 +141,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)src\include;$(SolutionDir)submodules\wil\include;$(SolutionDir)submodules\googletest\googletest\include;$(SolutionDir)submodules\googletest\googlemock\include</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -157,6 +160,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)src\include;$(SolutionDir)submodules\wil\include;$(SolutionDir)submodules\googletest\googletest\include;$(SolutionDir)submodules\googletest\googlemock\include</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

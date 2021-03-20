@@ -65,8 +65,8 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="nullfs.inf">
+    <CopyFileToFolders Include="nullfs.inf">
       <Filter>Driver Files</Filter>
-    </Text>
+    </CopyFileToFolders>
   </ItemGroup>
 </Project>
