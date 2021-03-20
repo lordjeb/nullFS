@@ -84,8 +84,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)obj\$(Platform)\$(ConfigurationName)\</OutDir>
-    <IntDir>obj\$(Platform)\$(ConfigurationName)\</IntDir>
+    <OutDir>$(SolutionDir)obj\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>nullFsIntegrationTests</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">

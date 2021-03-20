@@ -15,6 +15,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{37A60780-BCF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2D788CAA-9B7B-44BF-9D1C-2A522527A7AB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{C90BBA4D-7954-411F-940F-833396A66081}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "nullFS", "nullFS", "{61376C65-288D-49D0-B91D-E29E80DA573B}"
+	ProjectSection(SolutionItems) = preProject
+		src\include\nullFS\ioctl.h = src\include\nullFS\ioctl.h
+		src\include\nullFS\names.h = src\include\nullFS\names.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -68,6 +76,8 @@ Global
 		{53D1E0C4-815B-4806-84D4-7A8BB7759A38} = {2D788CAA-9B7B-44BF-9D1C-2A522527A7AB}
 		{B17CD3C1-22DB-44A5-9A58-E4A6F41AF88C} = {2D788CAA-9B7B-44BF-9D1C-2A522527A7AB}
 		{4F00275B-148F-4B0E-BCCC-4E4495D4C488} = {2D788CAA-9B7B-44BF-9D1C-2A522527A7AB}
+		{C90BBA4D-7954-411F-940F-833396A66081} = {37A60780-BCF0-44B3-B838-9DB6789B4CAE}
+		{61376C65-288D-49D0-B91D-E29E80DA573B} = {C90BBA4D-7954-411F-940F-833396A66081}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7427786C-ED54-4520-A81F-DD0B14F7769E}

@@ -81,8 +81,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <DebuggerFlavor>DbgengKernelDebugger</DebuggerFlavor>
-    <OutDir>$(SolutionDir)obj\$(Platform)\$(ConfigurationName)\</OutDir>
-    <IntDir>obj\$(Platform)\$(ConfigurationName)\</IntDir>
+    <OutDir>$(SolutionDir)obj\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
     <TargetName>nullFS</TargetName>
     <EnableInf2cat>false</EnableInf2cat>
   </PropertyGroup>
