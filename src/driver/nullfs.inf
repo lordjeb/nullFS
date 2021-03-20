@@ -8,6 +8,7 @@ Provider = %ManufacturerName%
 DriverVer = 
 Class = "File System"
 CatalogFile = nullFS.cat
+PnpLockDown = 1
 
 [DestinationDirs]
 DefaultDestDir = 12
@@ -33,6 +34,7 @@ AddService = %ServiceName%,,nullFS.Service
 
 [DefaultUninstall]
 DelFiles = DelFiles.DriverFiles
+LegacyUninstall=1
 
 [DelFiles.DriverFiles]
 %DriverFileName%.sys

@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "InstallTestDriver.h"
 #include <string>
 #include <SetupAPI.h>

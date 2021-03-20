@@ -1,4 +1,3 @@
-#include "pch.h"
 #include <wil/resource.h>
 #include <nullFS/names.h>
 

@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "NullFsDriverEnvironment.h"
 
 int main(int argc, char** argv)

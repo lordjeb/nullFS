@@ -1,4 +1,4 @@
-#include <ntifs.h>
+#include "pch.h"
 #define WIL_KERNEL_MODE
 #include <wil/resource.h>
 #include <nullFS/names.h>
@@ -183,7 +183,7 @@ function_exit:
     return rc;
 }
 
-NTSTATUS NfInitializeParameters(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING registryPath)
+NTSTATUS NfInitializeParameters(_In_ PUNICODE_STRING registryPath)
 {
     OBJECT_ATTRIBUTES oa = RTL_CONSTANT_OBJECT_ATTRIBUTES(registryPath, OBJ_CASE_INSENSITIVE);
     wil::unique_kernel_handle key;
@@ -212,7 +212,7 @@ extern "C" NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_
     rc = NfInitializeGlobals(driverObject);
     FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
 
-    rc = NfInitializeParameters(driverObject, registryPath);
+    rc = NfInitializeParameters(registryPath);
     FUNCTION_EXIT_IF_NOT_SUCCESS(rc);
 
     // Initialize the driver object,

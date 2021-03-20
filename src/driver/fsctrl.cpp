@@ -1,4 +1,5 @@
 #include <ntifs.h>
+#include "pch.h"
 #include "flowControl.h"
 #include "dispatchRoutines.h"
 

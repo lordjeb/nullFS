@@ -1,4 +1,4 @@
-#include <ntifs.h>
+#include "pch.h"
 #include "dispatchRoutines.h"
 
 // ---------------------------------------------------------------------------

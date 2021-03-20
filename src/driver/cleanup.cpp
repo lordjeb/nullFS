@@ -1,4 +1,4 @@
-#include <ntifs.h>
+#include "pch.h"
 #include "debug.h"
 #include "support.h"
 #include "flowControl.h"
