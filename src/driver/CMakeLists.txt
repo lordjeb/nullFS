@@ -19,6 +19,7 @@ wdk_add_driver(nullfs
     support.cpp              
     support.h
     )
+target_compile_options(nullfs PRIVATE /W4 /WX)
 target_precompile_headers(
     nullfs
     PRIVATE

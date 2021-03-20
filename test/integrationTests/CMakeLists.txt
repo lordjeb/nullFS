@@ -14,6 +14,7 @@ add_executable(nullFsIntegrationTests
     StartTestDriver.cpp          
     StartTestDriver.h            
 )
+target_compile_options(nullFsIntegrationTests PRIVATE /W4 /WX)
 target_precompile_headers(
     nullFsIntegrationTests
     PRIVATE
