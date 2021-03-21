@@ -3,8 +3,6 @@
 #include <string>
 #include <SetupAPI.h>
 
-#define QUOTE L'\"'
-
 InstallTestDriver::InstallTestDriver(const std::wstring& serviceName, const std::wstring& infFile)
     : serviceName_{ serviceName }, infFile_{ infFile }
 {
@@ -20,6 +18,7 @@ InstallTestDriver::~InstallTestDriver()
 
 std::wstring InstallTestDriver::ensureQuoted(const std::wstring& s)
 {
+    const wchar_t QUOTE = L'\"';
     auto pos = s.find(L' ');
     return std::wstring::npos == pos ? s : QUOTE + s + QUOTE;
 }
