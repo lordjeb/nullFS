@@ -14,8 +14,3 @@ BOOLEAN NfDeviceIsFileSystemDeviceObject(_In_ PDEVICE_OBJECT deviceObject)
 {
     return deviceObject == globalData.fileSystemDeviceObject;
 }
-
-BOOLEAN NfDeviceIsDiskDeviceObject(_In_ PDEVICE_OBJECT deviceObject)
-{
-    return deviceObject == globalData.diskDeviceObject;
-}

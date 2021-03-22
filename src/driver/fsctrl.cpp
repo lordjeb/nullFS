@@ -12,13 +12,13 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
 {
     PAGED_CODE();
 
-    NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
+    NTSTATUS rc{ STATUS_INVALID_DEVICE_REQUEST };
     __try
     {
         PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL [FileObj=%08p]\n",
-                   currentIrpStackLocation->FileObject);
+        NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL [FileObj=%08p, IrpMn=%02x]\n",
+                   currentIrpStackLocation->FileObject, currentIrpStackLocation->MinorFunction);
 
         if (NfDeviceIsFileSystemDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
         {
@@ -28,6 +28,8 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
             {
             case IRP_MN_MOUNT_VOLUME:
                 NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: IRP_MN_MOUNT_VOLUME\n");
+                // TODO: This is not safe, as it might mean we grab all kinds of volumes that we DONT own
+                //rc = STATUS_SUCCESS;
                 break;
 
             default:
@@ -37,13 +39,7 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
 
             LEAVE();
         }
-
-        if (NfDeviceIsDiskDeviceObject((PDEVICE_OBJECT)volumeDeviceObject))
-        {
-            NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: DiskDO\n");
-            LEAVE();
-        }
-
+    
         NfDbgPrint(DPFLTR_FS_CONTROL, "IRP_MJ_FILE_SYSTEM_CONTROL: Unrecognized device object\n");
     }
     __finally

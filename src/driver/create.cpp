@@ -26,13 +26,6 @@ _Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        if (NfDeviceIsDiskDeviceObject(volumeDeviceObject))
-        {
-            NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE: DiskDO\n");
-            information = FILE_OPENED;
-            LEAVE_WITH(rc = STATUS_SUCCESS);
-        }
-
         NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE: Unrecognized device object\n");
     }
     __finally

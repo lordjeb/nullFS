@@ -14,13 +14,14 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
 {
     PAGED_CODE();
 
-    NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
+    NTSTATUS rc{ STATUS_INVALID_DEVICE_REQUEST };
     __try
     {
         PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL [FileObj=%08p]\n",
-                   currentIrpStackLocation->FileObject);
+        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL [FileObj=%08p, IoCtl=%08x]\n",
+                   currentIrpStackLocation->FileObject,
+                   currentIrpStackLocation->Parameters.DeviceIoControl.IoControlCode);
 
         if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
         {
@@ -40,8 +41,6 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
                     // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks
                     // for this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the
                     // checks for reference counts and attached devices and all that.
-#pragma warning(suppress : 28175)
-#pragma warning(suppress : 28176)
                     globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
                 }
 
@@ -54,12 +53,6 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
                 break;
             }
 
-            LEAVE();
-        }
-
-        if (NfDeviceIsDiskDeviceObject(volumeDeviceObject))
-        {
-            NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: DiskDO\n");
             LEAVE();
         }
 

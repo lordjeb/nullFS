@@ -26,12 +26,6 @@ _Dispatch_type_(IRP_MJ_CLEANUP) _Function_class_(IRP_MJ_CLEANUP) _Function_class
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        if (NfDeviceIsDiskDeviceObject(volumeDeviceObject))
-        {
-            NfDbgPrint(DPFLTR_CLEANUP, "IRP_MJ_CLEANUP: DiskDO\n");
-            LEAVE_WITH(rc = STATUS_SUCCESS);
-        }
-
         NfDbgPrint(DPFLTR_CLEANUP, "IRP_MJ_CLEANUP: Unrecognized device object\n");
     }
     __finally

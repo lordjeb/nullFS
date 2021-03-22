@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include <wil/resource.h>
 
 #include <gmock/gmock.h>

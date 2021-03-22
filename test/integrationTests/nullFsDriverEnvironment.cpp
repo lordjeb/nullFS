@@ -8,7 +8,8 @@ using ::testing::Eq;
 constexpr const wchar_t driverServiceName[] = NF_NAME;
 
 NullFsDriverEnvironment::NullFsDriverEnvironment()
-    : installTestDriver_{ driverServiceName, getWorkingDirectory() + L"\\nullfs.inf" },
+    : createTestDisk_{ getWorkingDirectory() + L"\\nullFsTestDisk.vhd", L"N:\\" },
+      installTestDriver_{ driverServiceName, getWorkingDirectory() + L"\\nullfs.inf" },
       startTestDriver_{ driverServiceName }
 {
 }
@@ -16,6 +17,7 @@ NullFsDriverEnvironment::NullFsDriverEnvironment()
 void NullFsDriverEnvironment::SetUp()
 {
     ASSERT_TRUE(isUserAdmin());
+    createTestDisk_.setup();
     installTestDriver_.install();
     startTestDriver_.start();
 }

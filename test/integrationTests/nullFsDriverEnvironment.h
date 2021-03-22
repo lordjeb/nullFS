@@ -1,4 +1,5 @@
 #pragma once
+#include "CreateTestDisk.h"
 #include "InstallTestDriver.h"
 #include "StartTestDriver.h"
 
@@ -13,6 +14,7 @@ public:
     bool isUserAdmin();
 
 private:
+    CreateTestDisk createTestDisk_;
     InstallTestDriver installTestDriver_;
     StartTestDriver startTestDriver_;
 };

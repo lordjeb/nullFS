@@ -23,12 +23,6 @@ _Dispatch_type_(IRP_MJ_CLOSE) _Function_class_(IRP_MJ_CLOSE) _Function_class_(DR
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        if (NfDeviceIsDiskDeviceObject(volumeDeviceObject))
-        {
-            NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CLOSE: DiskDO\n");
-            LEAVE_WITH(rc = STATUS_SUCCESS);
-        }
-
         NfDbgPrint(DPFLTR_CLOSE, "Unrecognized device object\n");
     }
     __finally

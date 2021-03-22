@@ -5,16 +5,10 @@
 #include "struct.h"
 #include "dispatchRoutines.h"
 
-#pragma prefast(disable : __WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode")
+//#pragma prefast(disable : __WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode")
 
 using unique_registry_parameter_data =
     wil::unique_tagged_pool_ptr<KEY_VALUE_PARTIAL_INFORMATION*, TAG_REGISTRY_PARAMETER>;
-
-// ---------------------------------------------------------------------------
-// Global variables
-//
-
-NfGlobalData globalData;
 
 // ---------------------------------------------------------------------------
 // Driver unload functions
@@ -38,24 +32,6 @@ void NfUninitializeFileSystemDeviceObject()
     }
 }
 
-void NfUninitializeDiskDeviceObject()
-{
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED))
-    {
-        UNICODE_STRING symbolicLinkName;
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED);
-        RtlInitUnicodeString(&symbolicLinkName, NF_DRIVER_DISK_SYMBOLIC_NAME);
-        IoDeleteSymbolicLink(&symbolicLinkName);
-    }
-
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED))
-    {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED);
-        IoDeleteDevice(globalData.diskDeviceObject);
-        globalData.diskDeviceObject = nullptr;
-    }
-}
-
 void NfUninitializeGlobals()
 {
     if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
@@ -73,7 +49,6 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
     NfDbgPrint(DPFLTR_DRIVER_ENTRY, "NfDriverUnload\n");
 
     NfUninitializeFileSystemDeviceObject();
-    NfUninitializeDiskDeviceObject();
     NfUninitializeGlobals();
 }
 
@@ -109,36 +84,11 @@ NTSTATUS NfInitializeFileSystemDeviceObject()
     }
 }
 
-NTSTATUS NfInitializeDiskDeviceObject()
-{
-    ASSERT(globalData.driverObject);
-
-    NTSTATUS rc{ STATUS_SUCCESS };
-    __try
-    {
-        UNICODE_STRING driverDeviceName = RTL_CONSTANT_STRING(NF_DRIVER_DISK_DEVICE_NAME);
-        rc = IoCreateDevice(globalData.driverObject, 0, &driverDeviceName, FILE_DEVICE_DISK, 0, FALSE,
-                            &globalData.diskDeviceObject);
-        LEAVE_IF_NOT_SUCCESS(rc);
-        SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_DRIVER_DEVICE_CREATED);
-
-        UNICODE_STRING symbolicLinkName = RTL_CONSTANT_STRING(NF_DRIVER_DISK_SYMBOLIC_NAME);
-        rc = IoCreateSymbolicLink(&symbolicLinkName, &driverDeviceName);
-        LEAVE_IF_NOT_SUCCESS(rc);
-        SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DISK_SYMBOLIC_LINK_CREATED);
-    }
-    __finally
-    {
-        return rc;
-    }
-}
-
 void NfInitializeFsdDispatch()
 {
     ASSERT(globalData.driverObject);
 
-#pragma warning(push)
-#pragma warning(disable : 28175)
+    // See p.396
     globalData.driverObject->MajorFunction[IRP_MJ_CREATE] = (PDRIVER_DISPATCH)NfFsdCreate;
     globalData.driverObject->MajorFunction[IRP_MJ_CLOSE] = (PDRIVER_DISPATCH)NfFsdClose;
     // globalData.driverObject->MajorFunction[IRP_MJ_READ] = (PDRIVER_DISPATCH)NfFsdRead;
@@ -154,12 +104,15 @@ void NfInitializeFsdDispatch()
     // (PDRIVER_DISPATCH)NfFsdSetVolumeInformation;
     globalData.driverObject->MajorFunction[IRP_MJ_CLEANUP] = (PDRIVER_DISPATCH)NfFsdCleanup;
     // globalData.driverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = (PDRIVER_DISPATCH)NfFsdDirectoryControl;
-    // globalData.driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)NfFsdFileSystemControl;
+    globalData.driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)NfFsdFileSystemControl;
     // globalData.driverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = (PDRIVER_DISPATCH)NfFsdLockControl;
     globalData.driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)NfFsdDeviceControl;
     // globalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
     // globalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
-#pragma warning(pop)
+
+    auto fastIoDispatch = globalData.driverObject->FastIoDispatch = &globalData.FastIoDispatch;
+    fastIoDispatch->SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
+    // TODO: Initialize the FastIO stuff as well
 }
 
 NTSTATUS NfInitializeGlobals(_In_ PDRIVER_OBJECT driverObject)
@@ -263,9 +216,6 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
 #if defined(DBG)
         driverObject->DriverUnload = NfDriverUnload;
 #endif
-
-        rc = NfInitializeDiskDeviceObject();
-        LEAVE_IF_NOT_SUCCESS(rc);
 
         // Create the device object
         rc = NfInitializeFileSystemDeviceObject();
