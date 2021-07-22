@@ -1,9 +1,8 @@
 #include "pch.h"
-#define WIL_KERNEL_MODE
-#include <wil/resource.h>
 #include <nullFS/names.h>
 #include "struct.h"
 #include "dispatchRoutines.h"
+#include "cacheManager.h"
 
 //#pragma prefast(disable : __WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode")
 
@@ -46,9 +45,20 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
     UNREFERENCED_PARAMETER(driverObject);
     PAGED_CODE();
 
-    NfDbgPrint(DPFLTR_DRIVER_ENTRY, "NfDriverUnload\n");
+    NfDbgPrint(DPFLTR_DRIVER_ENTRY, "%s\n", __FUNCTION__);
 
     NfUninitializeFileSystemDeviceObject();
+
+    ExAcquireResourceExclusiveLite(&globalData.lock, TRUE);
+
+    for (auto entry = globalData.nextVCB.Flink; entry->Flink != &globalData.nextVCB; entry = entry->Flink)
+    {
+        NfVolumeControlBlock* vcb = CONTAINING_RECORD(entry, NfVolumeControlBlock, nextVCB);
+        NfUninitializeVCB(vcb);
+    }
+
+    ExReleaseResourceLite(&globalData.lock);
+
     NfUninitializeGlobals();
 }
 
@@ -61,9 +71,10 @@ NTSTATUS NfInitializeFileSystemDeviceObject()
     ASSERT(globalData.driverObject);
 
     NTSTATUS rc{ STATUS_SUCCESS };
-    __try
+    TRY
     {
         UNICODE_STRING driverDeviceName = RTL_CONSTANT_STRING(NF_DRIVER_DEVICE_NAME);
+        // TODO: Should be using FILE_DEVICE_SECURE_OPEN for security?
         rc = IoCreateDevice(globalData.driverObject, 0, &driverDeviceName, NF_DEVICE_TYPE, 0, FALSE,
                             &globalData.fileSystemDeviceObject);
         LEAVE_IF_NOT_SUCCESS(rc);
@@ -78,7 +89,7 @@ NTSTATUS NfInitializeFileSystemDeviceObject()
         IoRegisterFileSystem(globalData.fileSystemDeviceObject);
         SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
     }
-    __finally
+    FINALLY
     {
         return rc;
     }
@@ -110,7 +121,7 @@ void NfInitializeFsdDispatch()
     // globalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
     // globalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
 
-    auto fastIoDispatch = globalData.driverObject->FastIoDispatch = &globalData.FastIoDispatch;
+    auto fastIoDispatch = globalData.driverObject->FastIoDispatch = &globalData.fastIoDispatch;
     fastIoDispatch->SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
     // TODO: Initialize the FastIO stuff as well
 }
@@ -118,17 +129,24 @@ void NfInitializeFsdDispatch()
 NTSTATUS NfInitializeGlobals(_In_ PDRIVER_OBJECT driverObject)
 {
     NTSTATUS rc{ STATUS_SUCCESS };
-    __try
+    TRY
     {
         RtlZeroMemory(&globalData, sizeof(globalData));
 
         globalData.driverObject = driverObject;
 
+        globalData.cacheManagerCallbacks.AcquireForLazyWrite = globalData.cacheManagerCallbacks.AcquireForReadAhead =
+            NfCmAcquireNoOp;
+        globalData.cacheManagerCallbacks.ReleaseFromLazyWrite = globalData.cacheManagerCallbacks.ReleaseFromReadAhead =
+            NfCmReleaseNoOp;
+
+        InitializeListHead(&(globalData.nextVCB));
+
         rc = ExInitializeResourceLite(&globalData.lock);
         LEAVE_IF_NOT_SUCCESS(rc);
         SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
     }
-    __finally
+    FINALLY
     {
         return rc;
     }
@@ -137,7 +155,7 @@ NTSTATUS NfInitializeGlobals(_In_ PDRIVER_OBJECT driverObject)
 NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
 {
     NTSTATUS rc{ STATUS_SUCCESS };
-    __try
+    TRY
     {
         OBJECT_ATTRIBUTES oaDriverKey = RTL_CONSTANT_OBJECT_ATTRIBUTES(registryPath, OBJ_CASE_INSENSITIVE);
         wil::unique_kernel_handle driverKey;
@@ -157,7 +175,7 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
             {
                 ULONG cbKvpi = FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + sizeof(ULONG);
                 unique_registry_parameter_data kvpi{ static_cast<KEY_VALUE_PARTIAL_INFORMATION*>(
-                    ExAllocatePool2(POOL_FLAG_PAGED, cbKvpi, TAG_REGISTRY_PARAMETER)) };
+                    ExAllocatePoolWithTag(PagedPool, cbKvpi, TAG_REGISTRY_PARAMETER)) };
                 if (!kvpi.is_valid())
                 {
                     LEAVE_WITH(rc = STATUS_INSUFFICIENT_RESOURCES);
@@ -184,7 +202,7 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
 
         rc = STATUS_SUCCESS;
     }
-    __finally
+    FINALLY
     {
         return rc;
     }
@@ -193,11 +211,11 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
 extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_STRING* registryPath)
 {
     NTSTATUS rc{ STATUS_SUCCESS };
-    __try
+    TRY
     {
         UNREFERENCED_PARAMETER(registryPath);
 
-        NfDbgPrint(DPFLTR_DRIVER_ENTRY, "DriverEntry [Build timestamp: %s]\n", __TIMESTAMP__);
+        NfDbgPrint(DPFLTR_DRIVER_ENTRY, "%s: [Build timestamp: %s]\n", __FUNCTION__, __TIMESTAMP__);
 
         rc = NfInitializeGlobals(driverObject);
         LEAVE_IF_NOT_SUCCESS(rc);
@@ -221,11 +239,11 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
         rc = NfInitializeFileSystemDeviceObject();
         LEAVE_IF_NOT_SUCCESS(rc);
     }
-    __finally
+    FINALLY
     {
         if (!NT_SUCCESS(rc))
         {
-            NfDbgPrint(DPFLTR_DRIVER_ENTRY, "DriverEntry failed (%08x)\n", rc);
+            NfDbgPrint(DPFLTR_DRIVER_ENTRY, "%s: failed (%08x)\n", __FUNCTION__, rc);
 
             NfDriverUnload(driverObject);
         }

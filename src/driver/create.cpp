@@ -12,23 +12,28 @@ _Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(
     PAGED_CODE();
 
     NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
-    __try
+    TRY
     {
-        ULONG_PTR information = 0; // TODO: What to do with this?
+        ULONG_PTR information = 0;   // TODO: What to do with this?
         PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
+        NfDbgPrint(DPFLTR_CREATE, "%s: [DevObj=%08p,FileObj=%08p]\n", __FUNCTION__, volumeDeviceObject,
+                   currentIrpStackLocation->FileObject);
+
+        // If we were called with our file system device object instead of a volume device object, just return success
 
         if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
         {
-            NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE: FileSystemDO\n");
+            NfDbgPrint(DPFLTR_CREATE, "%s: FileSystemDO\n", __FUNCTION__);
             information = FILE_OPENED;
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE: Unrecognized device object\n");
+        // TODO: Open the file object based on the name
+        NfDbgPrint(DPFLTR_CREATE, "%s: VolumeDO\n", __FUNCTION__);
+        LEAVE_WITH(rc = STATUS_OBJECT_NAME_NOT_FOUND);
     }
-    __finally
+    FINALLY
     {
         return NfCompleteRequest(irp, rc, 0);
     }

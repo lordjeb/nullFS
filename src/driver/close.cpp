@@ -6,26 +6,26 @@
 //
 
 _Dispatch_type_(IRP_MJ_CLOSE) _Function_class_(IRP_MJ_CLOSE) _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
-    NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+    NfFsdClose(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
     PAGED_CODE();
 
     NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
-    __try
+    TRY
     {
         PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_CLOSE, "IRP_MJ_CLOSE [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
+        NfDbgPrint(DPFLTR_CLOSE, "%s: [FileObj=%08p]\n", __FUNCTION__, currentIrpStackLocation->FileObject);
 
-        if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
+        if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CLOSE: FileSystemDO\n");
+            NfDbgPrint(DPFLTR_CREATE, "%s: FileSystemDO\n", __FUNCTION__);
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        NfDbgPrint(DPFLTR_CLOSE, "Unrecognized device object\n");
+        NfDbgPrint(DPFLTR_CLOSE, "%s: Unrecognized device object [DevObj=%p]\n", __FUNCTION__, deviceObject);
     }
-    __finally
+    FINALLY
     {
         return NfCompleteRequest(irp, rc, 0);
     }

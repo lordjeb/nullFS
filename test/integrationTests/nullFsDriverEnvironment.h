@@ -10,11 +10,10 @@ public:
 
     virtual void SetUp();
     virtual void TearDown();
-    std::wstring getWorkingDirectory();
-    bool isUserAdmin();
+    static std::wstring getWorkingDirectory();
+    static bool isUserAdmin();
 
 private:
-    CreateTestDisk createTestDisk_;
     InstallTestDriver installTestDriver_;
     StartTestDriver startTestDriver_;
 };

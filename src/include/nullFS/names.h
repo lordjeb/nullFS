@@ -11,3 +11,9 @@
 #define NF_DRIVER_DISK_DEVICE_NAME L"\\VolumeN"
 #define NF_DRIVER_DISK_SYMBOLIC_NAME L"\\DosDevices\\" NF_DISK_NAME
 #define NF_WIN32_DISK_DEVICE_NAME L"\\\\.\\" NF_DISK_NAME
+
+struct NfFirstSector
+{
+    unsigned long volumeSignature;
+    unsigned char padding[508];
+};

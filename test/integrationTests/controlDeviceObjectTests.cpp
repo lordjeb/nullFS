@@ -1,7 +1,8 @@
 #include "pch.h"
 #include <wil/resource.h>
 #include <nullFS/names.h>
-#include <conio.h>
+#include "NullFsDriverEnvironment.h"
+#include "CreateTestDisk.h"
 
 using ::testing::Eq;
 
@@ -13,12 +14,63 @@ TEST(FileSystemDeviceObjectTests, Can_open)
     ASSERT_THAT(hFS.is_valid(), Eq(true)) << L"GetLastError() == " << GetLastError();
 }
 
-TEST(LogicalVolumeTests, Can_open_root)
+struct LogicalVolumeTests : public ::testing::Test
 {
-    // TODO: Enable priv
-    wil::unique_hfile hFS{ CreateFile(L"N:\\test.txt", GENERIC_ALL,
-                                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, CREATE_NEW,
-                                      0, nullptr) };
+    LogicalVolumeTests()
+        : driveLetter_{ L"N:" },
+          createTestDisk_{ NullFsDriverEnvironment::getWorkingDirectory() + L"\\nullfs.vhd", driveLetter_ }
+    {
+    }
 
-    ASSERT_THAT(hFS.is_valid(), Eq(true)) << L"GetLastError() == " << GetLastError();
+    virtual ~LogicalVolumeTests() = default;
+
+    std::wstring driveLetter_;
+    CreateTestDisk createTestDisk_;
+
+    std::wstring getTestFilename(const std::wstring& relativeFilename = L"")
+    {
+        return driveLetter_ + L'\\' + relativeFilename;
+    }
+};
+
+struct UnformattedLogicalVolumeTests : public LogicalVolumeTests
+{
+    UnformattedLogicalVolumeTests()
+    {
+        createTestDisk_.setup(false);
+    }
+
+    virtual ~UnformattedLogicalVolumeTests() = default;
+};
+
+TEST_F(UnformattedLogicalVolumeTests, Unformatted_volume_is_unrecognized)
+{
+    wil::unique_hfile hFS{ CreateFile(getTestFilename().c_str(), GENERIC_ALL,
+                                      FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, CREATE_NEW, 0,
+                                      nullptr) };
+
+    ASSERT_THAT(hFS.is_valid(), Eq(false)) << L"GetLastError() == " << GetLastError();
+    ASSERT_THAT(GetLastError(), Eq(ERROR_UNRECOGNIZED_VOLUME));
+}
+
+struct FormattedLogicalVolumeTests : public LogicalVolumeTests
+{
+    FormattedLogicalVolumeTests()
+    {
+        createTestDisk_.setup(true);
+    }
+
+    virtual ~FormattedLogicalVolumeTests() = default;
+};
+
+TEST_F(FormattedLogicalVolumeTests, Can_open_root_directory)
+{
+    OutputDebugStringW(L"!!! Directory-open\n");
+    wil::unique_hfile testFile{ CreateFile(getTestFilename().c_str(), GENERIC_ALL,
+                                           FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, CREATE_NEW,
+                                           0, nullptr) };
+    OutputDebugStringW(L"!!! Directory-open-post\n");
+
+    // BUGBUG: Currently fails with ERROR_FILE_NOT_FOUND because we haven't a directory to open yet
+    ASSERT_THAT(testFile.is_valid(), Eq(true)) << L"GetLastError() == " << GetLastError();
 }

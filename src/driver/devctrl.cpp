@@ -15,23 +15,23 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
     PAGED_CODE();
 
     NTSTATUS rc{ STATUS_INVALID_DEVICE_REQUEST };
-    __try
+    TRY
     {
         PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL [FileObj=%08p, IoCtl=%08x]\n",
+        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "%s: [FileObj=%08p, IoCtl=%08x]\n", __FUNCTION__,
                    currentIrpStackLocation->FileObject,
                    currentIrpStackLocation->Parameters.DeviceIoControl.IoControlCode);
 
         if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
         {
-            NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: FileSystemDO\n");
+            NfDbgPrint(DPFLTR_DEVICE_CONTROL, "%s: FileSystemDO\n", __FUNCTION__);
 
             switch (currentIrpStackLocation->Parameters.DeviceIoControl.IoControlCode)
             {
 #if defined(DBG)
             case IOCTL_SHUTDOWN:
-                NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: IOCTL_SHUTDOWN\n");
+                NfDbgPrint(DPFLTR_DEVICE_CONTROL, "%s: IOCTL_SHUTDOWN\n", __FUNCTION__);
 
                 if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
                 {
@@ -49,16 +49,16 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
 #endif
 
             default:
-                NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: Unknown DeviceIoControl.IoControlCode\n");
+                NfDbgPrint(DPFLTR_DEVICE_CONTROL, "%s: Unknown DeviceIoControl.IoControlCode\n", __FUNCTION__);
                 break;
             }
 
             LEAVE();
         }
 
-        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "IRP_MJ_DEVICE_CONTROL: Unrecognized device object\n");
+        NfDbgPrint(DPFLTR_DEVICE_CONTROL, "%s: Unrecognized device object\n", __FUNCTION__);
     }
-    __finally
+    FINALLY
     {
         return NfCompleteRequest(irp, rc, 0);
     }

@@ -43,7 +43,13 @@
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GlobalData.cpp">
+    <ClCompile Include="globalData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="cacheManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="struct.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -66,10 +72,13 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GlobalData.h">
+    <ClInclude Include="globalData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pooltags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cacheManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -77,5 +86,10 @@
     <CopyFileToFolders Include="nullfs.inf">
       <Filter>Driver Files</Filter>
     </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

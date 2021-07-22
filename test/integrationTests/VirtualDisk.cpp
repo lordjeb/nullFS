@@ -29,7 +29,8 @@ void VirtualDisk::AssignDriveLetter(const std::wstring& driveLetter)
 
     auto volumeName = WaitForVolumeName(3000) + L'\\';
 
-    THROW_IF_WIN32_BOOL_FALSE(SetVolumeMountPoint(driveLetter.c_str(), volumeName.c_str()));
+    auto driveLetterWithBackslash = driveLetter + L'\\';
+    THROW_IF_WIN32_BOOL_FALSE(SetVolumeMountPoint(driveLetterWithBackslash.c_str(), volumeName.c_str()));
 }
 
 void VirtualDisk::Attach()

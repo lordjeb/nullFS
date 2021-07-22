@@ -142,12 +142,13 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cacheManager.cpp" />
     <ClCompile Include="cleanup.cpp" />
     <ClCompile Include="close.cpp" />
     <ClCompile Include="create.cpp" />
     <ClCompile Include="devctrl.cpp" />
     <ClCompile Include="fsctrl.cpp" />
-    <ClCompile Include="GlobalData.cpp" />
+    <ClCompile Include="globalData.cpp" />
     <ClCompile Include="nullfs.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -155,17 +156,22 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="struct.cpp" />
     <ClCompile Include="support.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cacheManager.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="dispatchRoutines.h" />
     <ClInclude Include="flowControl.h" />
-    <ClInclude Include="GlobalData.h" />
+    <ClInclude Include="globalData.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pooltags.h" />
     <ClInclude Include="struct.h" />
     <ClInclude Include="support.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

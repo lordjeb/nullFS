@@ -7,7 +7,7 @@ public:
     CreateTestDisk(const std::wstring& vhdFilename, const std::wstring& driveLetter);
     virtual ~CreateTestDisk();
 
-    void setup();
+    void setup(bool formatDisk = true);
 
 private:
     bool created_{ false };
