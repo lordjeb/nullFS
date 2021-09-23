@@ -158,13 +158,14 @@
     </ClCompile>
     <ClCompile Include="struct.cpp" />
     <ClCompile Include="support.cpp" />
+    <ClCompile Include="traceLogging.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cacheManager.h" />
-    <ClInclude Include="debug.h" />
     <ClInclude Include="dispatchRoutines.h" />
     <ClInclude Include="flowControl.h" />
     <ClInclude Include="globalData.h" />
+    <ClInclude Include="traceLogging.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="pooltags.h" />
     <ClInclude Include="struct.h" />

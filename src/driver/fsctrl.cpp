@@ -88,8 +88,6 @@ NTSTATUS NfMountVolume(DEVICE_OBJECT* targetDeviceObject, VPB* vpb)
     {
         if (FlagOn(targetDeviceObject->Characteristics, FILE_REMOVABLE_MEDIA))
         {
-            NfDbgPrint(DPFLTR_FS_CONTROL, "%s: Removable media\n", __FUNCTION__);
-
             // TODO: Make sure there is media in the drive?
         }
 
@@ -108,7 +106,8 @@ NTSTATUS NfMountVolume(DEVICE_OBJECT* targetDeviceObject, VPB* vpb)
                             FILE_DEVICE_DISK_FILE_SYSTEM, 0, FALSE, (DEVICE_OBJECT**)&volumeDeviceObject);
         LEAVE_IF_NOT_SUCCESS(rc);
 
-        NfDbgPrint(DPFLTR_FS_CONTROL, "%s: Created VDO [DevObj=%p]\n", __FUNCTION__, volumeDeviceObject);
+        NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeDeviceObjectCreated",
+                           TraceLoggingPointer(volumeDeviceObject));
 
         if (targetDeviceObject->AlignmentRequirement > volumeDeviceObject->deviceObject.AlignmentRequirement)
         {
@@ -138,16 +137,19 @@ NTSTATUS NfMountVolume(DEVICE_OBJECT* targetDeviceObject, VPB* vpb)
         wil::unique_tagged_pool_ptr<NfFirstSector*, TAG_REGISTRY_SECTOR_DATA> buffer{ static_cast<NfFirstSector*>(
             ExAllocatePoolWithTag(NonPagedPoolCacheAligned, sectorSize, TAG_REGISTRY_SECTOR_DATA)) };
         rc = NfpReadStorage(targetDeviceObject, 0, sectorSize, buffer.get());
-        NfDbgPrint(DPFLTR_FS_CONTROL, "%s: NfpReadStorage %08x\n", __FUNCTION__, rc);
-        LEAVE_IF_NOT_SUCCESS(rc);
+        if (!NT_SUCCESS(rc))
+        {
+            NfTraceVolumeMount(WINEVENT_LEVEL_ERROR, "VolumeMountFailedToReadStorage", TraceLoggingNTStatus(rc));
+            LEAVE();
+        }
 
         if (0xbeeff11e != buffer.get()->volumeSignature)
         {
-            NfDbgPrint(DPFLTR_FS_CONTROL, "%s: Unrecognized file system signature\n", __FUNCTION__);
+            NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "UnrecognizedVolumeSignature");
             LEAVE_WITH(rc = STATUS_UNRECOGNIZED_VOLUME);
         }
 
-        NfDbgPrint(DPFLTR_FS_CONTROL, "%s: nullFS signature!\n", __FUNCTION__);
+        NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeMounted");
 
         rc = STATUS_SUCCESS;
     }
@@ -164,12 +166,14 @@ NTSTATUS NfMountVolume(DEVICE_OBJECT* targetDeviceObject, VPB* vpb)
             {
                 NfUninitializeVCB(vcb);
             }
-            
+
             if (volumeDeviceObject != nullptr)
             {
                 // VCB was never initialized, so we need to just delete the device object
-                NfDbgPrint(DPFLTR_FS_CONTROL, "%s: Delete VDO [DevObj=%p]\n", __FUNCTION__, volumeDeviceObject);
                 IoDeleteDevice(&(volumeDeviceObject->deviceObject));
+
+                NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeDeviceObjectDeleted",
+                                   TraceLoggingPointer(&(volumeDeviceObject->deviceObject), "volumeDeviceObject"));
             }
 
             rc = STATUS_UNRECOGNIZED_VOLUME;
@@ -190,34 +194,35 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
     {
         PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_FS_CONTROL, "%s: [DevObj=%p, IrpMn=%02x]\n", __FUNCTION__, deviceObject,
-                   currentIrpStackLocation->MinorFunction);
-
         if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfDbgPrint(DPFLTR_FS_CONTROL, "%s: FileSystemDO\n", __FUNCTION__);
-
             switch (currentIrpStackLocation->MinorFunction)
             {
             case IRP_MN_USER_FS_REQUEST:
-                NfDbgPrint(DPFLTR_FS_CONTROL, "%s: IRP_MN_USER_FS_REQUEST [Unhandled]\n", __FUNCTION__);
+                NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeMountUserFsRequest",
+                                   TraceLoggingPointer(deviceObject));
                 break;
 
             case IRP_MN_MOUNT_VOLUME:
-                NfDbgPrint(DPFLTR_FS_CONTROL, "%s: IRP_MN_MOUNT_VOLUME\n", __FUNCTION__);
+                NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeMountMountVolume", TraceLoggingPointer(deviceObject),
+                                   TraceLoggingPointer(currentIrpStackLocation->Parameters.MountVolume.DeviceObject,
+                                                       "mountingDeviceObject"),
+                                   TraceLoggingPointer(currentIrpStackLocation->Parameters.MountVolume.Vpb, "vpb"));
+
                 rc = NfMountVolume(currentIrpStackLocation->Parameters.MountVolume.DeviceObject,
                                    currentIrpStackLocation->Parameters.MountVolume.Vpb);
                 break;
 
             default:
-                NfDbgPrint(DPFLTR_FS_CONTROL, "%s: Unknown MinorFunction\n", __FUNCTION__);
+                NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeMountUnknownMinorFn",
+                                   TraceLoggingPointer(deviceObject));
                 break;
             }
 
             LEAVE();
         }
 
-        NfDbgPrint(DPFLTR_FS_CONTROL, "%s: Unrecognized device object\n", __FUNCTION__);
+        NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeMountUnknownDeviceObject", TraceLoggingPointer(deviceObject));
     }
     FINALLY
     {

@@ -3,5 +3,3 @@
 #define LEAVE_IF_NOT_SUCCESS(r)
 #define LEAVE_WITH(s)
 #define LEAVE()
-#define NfDbgPrint(lvl, fmt, __VA_ARGS__) DbgPrintEx(DPFLTR_IHVDRIVER_ID, lvl, "[nullFS] " fmt,##__VA_ARGS__)
-#define NfDbgPrint(x)

@@ -13,17 +13,11 @@ _Dispatch_type_(IRP_MJ_CLOSE) _Function_class_(IRP_MJ_CLOSE) _Function_class_(DR
     NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
     TRY
     {
-        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
-
-        NfDbgPrint(DPFLTR_CLOSE, "%s: [FileObj=%08p]\n", __FUNCTION__, currentIrpStackLocation->FileObject);
-
         if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfDbgPrint(DPFLTR_CREATE, "%s: FileSystemDO\n", __FUNCTION__);
+            NfTraceClose(WINEVENT_LEVEL_VERBOSE, "CloseFsdo", TraceLoggingPointer(deviceObject));
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
-
-        NfDbgPrint(DPFLTR_CLOSE, "%s: Unrecognized device object [DevObj=%p]\n", __FUNCTION__, deviceObject);
     }
     FINALLY
     {

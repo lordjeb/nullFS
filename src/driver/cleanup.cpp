@@ -1,5 +1,4 @@
 #include "pch.h"
-#include "debug.h"
 #include "support.h"
 #include "flowControl.h"
 #include "dispatchRoutines.h"
@@ -16,17 +15,11 @@ _Dispatch_type_(IRP_MJ_CLEANUP) _Function_class_(IRP_MJ_CLEANUP) _Function_class
     NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
     TRY
     {
-        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
-
-        NfDbgPrint(DPFLTR_CLEANUP, "%s: [FileObj=%08p]\n", __FUNCTION__, currentIrpStackLocation->FileObject);
-
         if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfDbgPrint(DPFLTR_CLEANUP, "%s: FileSystemDO\n", __FUNCTION__);
+            NfTraceCleanup(WINEVENT_LEVEL_VERBOSE, "CleanupFsdo", TraceLoggingPointer(deviceObject));
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
-
-        NfDbgPrint(DPFLTR_CLEANUP, "%s: Unrecognized device object [DevObj=%p]\n", __FUNCTION__, deviceObject);
     }
     FINALLY
     {

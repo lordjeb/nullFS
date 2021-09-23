@@ -18,7 +18,8 @@ NfVolumeControlBlock* NfpInitializeVCB(NfVolumeControlBlock* vcb, VPB* vpb)
     // Create and initialize a stream file object for the volume
     vcb->streamFileObject = IoCreateStreamFileObject(nullptr, vpb->RealDevice);
     ASSERT(vcb->streamFileObject);
-    NfDbgPrint(DPFLTR_FS_CONTROL, "%s: Created stream file object [FileObj=%p]\n", __FUNCTION__, vcb->streamFileObject);
+    NfTraceVolumeMount(WINEVENT_LEVEL_VERBOSE, "VolumeMountCreatedStreamFileObject",
+                       TraceLoggingPointer(vcb->streamFileObject, "FileObject"));
     vcb->streamFileObject->FsContext = vcb;
     vcb->streamFileObject->FsContext2 = nullptr;
     vcb->streamFileObject->SectionObjectPointer = &(vcb->sectionObjectPointers);

@@ -7,7 +7,7 @@
 //
 
 _Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
-    NfFsdCreate(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+    NfFsdCreate(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
     PAGED_CODE();
 
@@ -17,20 +17,20 @@ _Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(
         ULONG_PTR information = 0;   // TODO: What to do with this?
         PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_CREATE, "%s: [DevObj=%08p,FileObj=%08p]\n", __FUNCTION__, volumeDeviceObject,
-                   currentIrpStackLocation->FileObject);
-
         // If we were called with our file system device object instead of a volume device object, just return success
 
-        if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
+        if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfDbgPrint(DPFLTR_CREATE, "%s: FileSystemDO\n", __FUNCTION__);
+            NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "CreateFsdo",
+                          TraceLoggingPointer(deviceObject));
             information = FILE_OPENED;
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
         // TODO: Open the file object based on the name
-        NfDbgPrint(DPFLTR_CREATE, "%s: VolumeDO\n", __FUNCTION__);
+        NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "CreateFile", TraceLoggingPointer(deviceObject),
+                      TraceLoggingPointer(currentIrpStackLocation->FileObject, "fileObject"),
+                      TraceLoggingUnicodeString(&(currentIrpStackLocation->FileObject->FileName), "fileName"));
         LEAVE_WITH(rc = STATUS_OBJECT_NAME_NOT_FOUND);
     }
     FINALLY
