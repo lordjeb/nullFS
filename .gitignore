@@ -2,3 +2,4 @@
 /.vs
 obj
 *.vcxproj.user
+debugVm.ps1
