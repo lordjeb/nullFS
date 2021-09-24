@@ -49,7 +49,7 @@ TEST_F(UnformattedLogicalVolumeTests, Unformatted_volume_is_unrecognized)
                                       nullptr) };
 
     ASSERT_THAT(hFS.is_valid(), Eq(false)) << L"GetLastError() == " << GetLastError();
-    ASSERT_THAT(GetLastError(), Eq(ERROR_UNRECOGNIZED_VOLUME));
+    ASSERT_THAT(GetLastError(), Eq((DWORD)ERROR_UNRECOGNIZED_VOLUME));
 }
 
 struct FormattedLogicalVolumeTests : public LogicalVolumeTests

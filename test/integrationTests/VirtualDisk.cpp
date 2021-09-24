@@ -93,7 +93,7 @@ std::wstring VirtualDisk::GetVolumeName()
     ULONG physicalPathLen = _countof(physicalPath);
     THROW_IF_WIN32_ERROR(GetVirtualDiskPhysicalPath(vhd_.get(), &physicalPathLen, physicalPath));
 
-    auto deviceNumberOfPhysicalDisk = _wtol(physicalPath + wcslen(LR"(\\.\PHYSICALDRIVE)"));
+    auto deviceNumberOfPhysicalDisk = wcstoul(physicalPath + wcslen(LR"(\\.\PHYSICALDRIVE)"), nullptr, 10);
 
     bool found{ false };
     wchar_t volumeName[MAX_PATH];
