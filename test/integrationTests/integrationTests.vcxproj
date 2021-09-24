@@ -189,6 +189,7 @@
   <ItemGroup>
     <ClCompile Include="controlDeviceObjectTests.cpp" />
     <ClCompile Include="CreateTestDisk.cpp" />
+    <ClCompile Include="DebugOutputTestEventListener.cpp" />
     <ClCompile Include="InstallTestDriver.cpp" />
     <ClCompile Include="integrationTests.cpp" />
     <ClCompile Include="nullFsDriverEnvironment.cpp" />
@@ -203,6 +204,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CreateTestDisk.h" />
+    <ClInclude Include="DebugOutputTestEventListener.h" />
     <ClInclude Include="InstallTestDriver.h" />
     <ClInclude Include="NullFsDriverEnvironment.h" />
     <ClInclude Include="pch.h" />

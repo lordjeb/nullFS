@@ -64,11 +64,9 @@ struct FormattedLogicalVolumeTests : public LogicalVolumeTests
 
 TEST_F(FormattedLogicalVolumeTests, Can_open_root_directory)
 {
-    OutputDebugStringW(L"!!! Directory-open\n");
     wil::unique_hfile testFile{ CreateFile(getTestFilename().c_str(), GENERIC_ALL,
                                            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, CREATE_NEW,
                                            0, nullptr) };
-    OutputDebugStringW(L"!!! Directory-open-post\n");
 
     // BUGBUG: Currently fails with ERROR_FILE_NOT_FOUND because we haven't a directory to open yet
     ASSERT_THAT(testFile.is_valid(), Eq(true)) << L"GetLastError() == " << GetLastError();
