@@ -34,6 +34,7 @@ void InstallTestDriver::install()
 void InstallTestDriver::installInfSection(const std::wstring& section)
 {
     auto command = section + L" 128 " + ensureQuoted(infFile_);
+#pragma warning(suppress:6387) // This usage conforms to the examples for the function
     InstallHinfSection(nullptr, nullptr, command.c_str(), 0);
 }
 

@@ -43,7 +43,6 @@ void NfUninitializeGlobals()
 _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverObject)
 {
     UNREFERENCED_PARAMETER(driverObject);
-    PAGED_CODE();
 
     NfTraceCommon(WINEVENT_LEVEL_INFO, "Unload");
 
@@ -102,6 +101,8 @@ void NfInitializeFsdDispatch()
     ASSERT(globalData.driverObject);
 
     // See p.396
+#pragma warning(push)
+#pragma warning(disable : 28175)   // Ok for file system driver
     globalData.driverObject->MajorFunction[IRP_MJ_CREATE] = (PDRIVER_DISPATCH)NfFsdCreate;
     globalData.driverObject->MajorFunction[IRP_MJ_CLOSE] = (PDRIVER_DISPATCH)NfFsdClose;
     // globalData.driverObject->MajorFunction[IRP_MJ_READ] = (PDRIVER_DISPATCH)NfFsdRead;
@@ -126,6 +127,7 @@ void NfInitializeFsdDispatch()
     auto fastIoDispatch = globalData.driverObject->FastIoDispatch = &globalData.fastIoDispatch;
     fastIoDispatch->SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
     // TODO: Initialize the FastIO stuff as well
+#pragma warning(pop)
 }
 
 NTSTATUS NfInitializeGlobals(_In_ PDRIVER_OBJECT driverObject)
@@ -187,18 +189,18 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
                 ULONG returnLength;
                 rc = ZwQueryValueKey(parametersKey.get(), &breakOnLoadValueName, KeyValuePartialInformation, kvpi.get(),
                                      cbKvpi, &returnLength);
-                if (STATUS_SUCCESS == rc)
+                if (STATUS_SUCCESS == rc && kvpi.get()->Type == REG_DWORD && kvpi.get()->DataLength == sizeof(ULONG))
                 {
-                    globalData.Parameters.BreakOnLoad = (0 != *(&kvpi.get()->Data[0]));
+                    globalData.Parameters.BreakOnLoad = (0 != *((PULONG)&kvpi.get()->Data[0]));
                 }
 
-                UNICODE_STRING breakOnNtStatusValueName = RTL_CONSTANT_STRING(L"BreakOnNtStatus");
-                rc = ZwQueryValueKey(parametersKey.get(), &breakOnNtStatusValueName, KeyValuePartialInformation,
-                                     kvpi.get(), cbKvpi, &returnLength);
-                if (STATUS_SUCCESS == rc)
-                {
-                    globalData.Parameters.BreakOnNtStatus = *(&kvpi.get()->Data[0]);
-                }
+                //UNICODE_STRING breakOnNtStatusValueName = RTL_CONSTANT_STRING(L"BreakOnNtStatus");
+                //rc = ZwQueryValueKey(parametersKey.get(), &breakOnNtStatusValueName, KeyValuePartialInformation,
+                //                     kvpi.get(), cbKvpi, &returnLength);
+                //if (STATUS_SUCCESS == rc && kvpi.get()->Type == REG_DWORD && kvpi.get()->DataLength == sizeof(ULONG))
+                //{
+                //    globalData.Parameters.BreakOnNtStatus = *((PULONG)&kvpi.get()->Data[0]);
+                //}
             }
         }
 
@@ -209,6 +211,8 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
         return rc;
     }
 }
+
+extern "C" DRIVER_INITIALIZE DriverEntry;
 
 extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_STRING* registryPath)
 {

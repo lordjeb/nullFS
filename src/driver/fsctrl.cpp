@@ -117,6 +117,7 @@ NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
         }
 
         volumeDeviceObject->deviceObject.StackSize = targetDeviceObject->StackSize + 1;
+#pragma warning(suppress : 28175)   // Ok for file system driver
         volumeDeviceObject->deviceObject.SectorSize = (USHORT)geometry.BytesPerSector;
 
         // Indicate that the device object is fully initialized
@@ -210,8 +211,6 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
     _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
     NfFsdFileSystemControl(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
-    PAGED_CODE();
-
     NTSTATUS rc{ STATUS_NOT_IMPLEMENTED };
     TRY
     {

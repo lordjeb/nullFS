@@ -12,8 +12,6 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
     _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
     NfFsdDeviceControl(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
-    PAGED_CODE();
-
     NTSTATUS rc{ STATUS_NOT_IMPLEMENTED };
     TRY
     {
@@ -33,6 +31,8 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
                 // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks
                 // for this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the
                 // checks for reference counts and attached devices and all that.
+#pragma warning(suppress : 28175)   // Ok for file system driver
+#pragma warning(suppress : 28176)   // Ok for file system driver
                 globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
             }
 

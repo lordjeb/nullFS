@@ -21,7 +21,7 @@ struct NfGlobalData
     struct _Parameters
     {
         bool BreakOnLoad;
-        NTSTATUS BreakOnNtStatus;
+        //NTSTATUS BreakOnNtStatus;
     } Parameters;
 };
 

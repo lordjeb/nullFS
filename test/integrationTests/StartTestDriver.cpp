@@ -1,8 +1,6 @@
 #include "pch.h"
 #include "StartTestDriver.h"
 #include <string>
-#include <wil/resource.h>
-#include <wil/result.h>
 #include <Windows.h>
 
 template <typename Fn>

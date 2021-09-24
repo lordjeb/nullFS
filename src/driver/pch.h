@@ -12,4 +12,8 @@
 #include "pooltags.h"
 
 #define WIL_KERNEL_MODE
+#pragma warning(push)
+#include <CodeAnalysis\warnings.h>
+#pragma warning(disable : ALL_CODE_ANALYSIS_WARNINGS)
 #include <wil/resource.h>
+#pragma warning(pop)

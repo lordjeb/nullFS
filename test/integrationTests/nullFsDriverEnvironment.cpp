@@ -1,6 +1,5 @@
 #include "pch.h"
 #include "nullFsDriverEnvironment.h"
-#include <wil/resource.h>
 #include <nullFS/ioctl.h>
 
 using ::testing::Eq;

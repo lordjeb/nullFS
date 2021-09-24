@@ -1,5 +1,4 @@
 #include "pch.h"
-#include <wil/resource.h>
 #include <nullFS/names.h>
 #include "NullFsDriverEnvironment.h"
 #include "CreateTestDisk.h"

@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "VirtualDisk.h"
 #include <virtdisk.h>
-#include <wil/resource.h>
 #include <conio.h>
 
 typedef wil::unique_any_handle_invalid<decltype(&::FindVolumeClose), ::FindVolumeClose> unique_hfindvolume;
