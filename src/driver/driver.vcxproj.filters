@@ -55,6 +55,12 @@
     <ClCompile Include="traceLogging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shutdown.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pnp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dispatchRoutines.h">

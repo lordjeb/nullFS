@@ -45,7 +45,7 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
     UNREFERENCED_PARAMETER(driverObject);
     PAGED_CODE();
 
-    NfTraceCommon(WINEVENT_LEVEL_INFO, "DriverUnload");
+    NfTraceCommon(WINEVENT_LEVEL_INFO, "Unload");
 
     NfUninitializeFileSystemDeviceObject();
 
@@ -120,8 +120,8 @@ void NfInitializeFsdDispatch()
     globalData.driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)NfFsdFileSystemControl;
     // globalData.driverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = (PDRIVER_DISPATCH)NfFsdLockControl;
     globalData.driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)NfFsdDeviceControl;
-    // globalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
-    // globalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
+    globalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
+    globalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
 
     auto fastIoDispatch = globalData.driverObject->FastIoDispatch = &globalData.fastIoDispatch;
     fastIoDispatch->SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
@@ -219,7 +219,7 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
 
         TraceLoggingRegister(Logging::g_hProvider);
 
-        NfTraceCommon(WINEVENT_LEVEL_INFO, "DriverEntry", TraceLoggingString(__TIMESTAMP__, "BuildTimestamp"));
+        NfTraceCommon(WINEVENT_LEVEL_INFO, "Entry", TraceLoggingString(__TIMESTAMP__, "BuildTimestamp"));
 
         rc = NfInitializeGlobals(driverObject);
         LEAVE_IF_NOT_SUCCESS(rc);
@@ -247,7 +247,7 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
     {
         if (!NT_SUCCESS(rc))
         {
-            NfTraceCommon(WINEVENT_LEVEL_ERROR, "DriverEntryFailed");
+            NfTraceCommon(WINEVENT_LEVEL_ERROR, "Failed");
 
             NfDriverUnload(driverObject);
         }

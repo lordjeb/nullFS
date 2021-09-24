@@ -6,7 +6,7 @@ NTSTATUS NfCompleteRequest(_In_ PIRP irp, NTSTATUS status, ULONG_PTR information
 {
     irp->IoStatus.Status = status;
     irp->IoStatus.Information = information;
-    IoCompleteRequest(irp, IO_NO_INCREMENT);
+    IoCompleteRequest(irp, IO_DISK_INCREMENT);
     return status;
 }
 

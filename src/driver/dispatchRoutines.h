@@ -19,4 +19,10 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
 _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_CONTROL)
     _Function_class_(DRIVER_DISPATCH) NTSTATUS
     NfFsdFileSystemControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp);
+
+_Dispatch_type_(IRP_MJ_PNP) _Function_class_(IRP_MJ_PNP) _Function_class_(DRIVER_DISPATCH) NTSTATUS
+    NfFsdPnp(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp);
+
+_Dispatch_type_(IRP_MJ_SHUTDOWN) _Function_class_(IRP_MJ_SHUTDOWN) _Function_class_(DRIVER_DISPATCH) NTSTATUS
+    NfFsdShutdown(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp);
 }

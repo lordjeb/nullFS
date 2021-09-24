@@ -10,49 +10,41 @@
 
 _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
     _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
-    NfFsdDeviceControl(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+    NfFsdDeviceControl(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
     PAGED_CODE();
 
-    NTSTATUS rc{ STATUS_INVALID_DEVICE_REQUEST };
+    NTSTATUS rc{ STATUS_NOT_IMPLEMENTED };
     TRY
     {
-        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
+        auto irpSp = IoGetCurrentIrpStackLocation(irp);
 
-        if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
+        switch (irpSp->Parameters.DeviceIoControl.IoControlCode)
         {
-            switch (currentIrpStackLocation->Parameters.DeviceIoControl.IoControlCode)
-            {
 #if defined(DBG)
-            case IOCTL_SHUTDOWN:
-                NfTraceCommon(WINEVENT_LEVEL_VERBOSE, "DeviceControlShutdown", TraceLoggingPointer(volumeDeviceObject));
+        case IOCTL_NULLFS_SHUTDOWN:
+            NfTraceDeviceControl(WINEVENT_LEVEL_VERBOSE, "Shutdown", TraceLoggingPointer(deviceObject));
 
-                if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
-                {
-                    ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
-                    IoUnregisterFileSystem(globalData.fileSystemDeviceObject);
+            if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
+            {
+                ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
+                IoUnregisterFileSystem(globalData.fileSystemDeviceObject);
 
-                    // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks
-                    // for this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the
-                    // checks for reference counts and attached devices and all that.
-                    globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
-                }
-
-                rc = STATUS_SUCCESS;
-                break;
-#endif
-
-            default:
-                NfTraceCommon(WINEVENT_LEVEL_VERBOSE, "DeviceControlUnknownControlCode",
-                              TraceLoggingPointer(volumeDeviceObject));
-                break;
+                // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks
+                // for this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the
+                // checks for reference counts and attached devices and all that.
+                globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
             }
 
-            LEAVE();
-        }
+            rc = STATUS_SUCCESS;
+            break;
+#endif
 
-        NfTraceCommon(WINEVENT_LEVEL_VERBOSE, "DeviceControlUnknownDeviceObject",
-                      TraceLoggingPointer(volumeDeviceObject));
+        default:
+            NfTraceDeviceControl(WINEVENT_LEVEL_VERBOSE, "UnhandledIoControlCode", TraceLoggingPointer(deviceObject),
+                                 TraceLoggingULong(irpSp->Parameters.DeviceIoControl.IoControlCode, "IoControlCode"));
+            break;
+        }
     }
     FINALLY
     {

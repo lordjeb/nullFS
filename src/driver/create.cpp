@@ -11,30 +11,30 @@ _Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(
 {
     PAGED_CODE();
 
-    NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
+    NTSTATUS rc{ STATUS_NOT_IMPLEMENTED };
+    ULONG_PTR information{ 0 };
     TRY
     {
-        ULONG_PTR information = 0;   // TODO: What to do with this?
-        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
+        auto irpSp = IoGetCurrentIrpStackLocation(irp);
 
-        // If we were called with our file system device object instead of a volume device object, just return success
+        // If we were called with our file system device object instead of a volume device object just complete with
+        // STATUS_SUCCESS
 
         if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "CreateFsdo",
-                          TraceLoggingPointer(deviceObject));
+            NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "Fsdo", TraceLoggingPointer(deviceObject));
             information = FILE_OPENED;
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
         // TODO: Open the file object based on the name
-        NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "CreateFile", TraceLoggingPointer(deviceObject),
-                      TraceLoggingPointer(currentIrpStackLocation->FileObject, "fileObject"),
-                      TraceLoggingUnicodeString(&(currentIrpStackLocation->FileObject->FileName), "fileName"));
+        NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "File", TraceLoggingPointer(deviceObject),
+                      TraceLoggingPointer(irpSp->FileObject, "fileObject"),
+                      TraceLoggingUnicodeString(&(irpSp->FileObject->FileName), "fileName"));
         LEAVE_WITH(rc = STATUS_OBJECT_NAME_NOT_FOUND);
     }
     FINALLY
     {
-        return NfCompleteRequest(irp, rc, 0);
+        return NfCompleteRequest(irp, rc, information);
     }
 }

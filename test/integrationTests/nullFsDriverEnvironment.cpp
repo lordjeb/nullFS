@@ -27,7 +27,8 @@ void NullFsDriverEnvironment::TearDown()
                                        OPEN_EXISTING, 0, nullptr) };
     if (hFs.is_valid())
     {
-        EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr), Eq(TRUE))
+        EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_NULLFS_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr),
+                    Eq(TRUE))
             << L"GetLastError() == " << GetLastError();
     }
 }
