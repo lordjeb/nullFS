@@ -138,7 +138,7 @@ NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
 
         auto sectorSize = geometry.BytesPerSector;
         wil::unique_tagged_pool_ptr<NfFirstSector*, TAG_REGISTRY_SECTOR_DATA> buffer{ static_cast<NfFirstSector*>(
-            ExAllocatePoolWithTag(NonPagedPoolCacheAligned, sectorSize, TAG_REGISTRY_SECTOR_DATA)) };
+            ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_CACHE_ALIGNED, sectorSize, TAG_REGISTRY_SECTOR_DATA)) };
         rc = NfpReadStorage(targetDeviceObject, 0, sectorSize, buffer.get());
         TRACE_AND_LEAVE_IF_NOT_SUCCESS(rc, "VolumeMountFailedToReadStorage", Logging::Keyword::FsCtrl);
 

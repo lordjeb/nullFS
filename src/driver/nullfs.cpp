@@ -179,7 +179,7 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
             {
                 ULONG cbKvpi = FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + sizeof(ULONG);
                 unique_registry_parameter_data kvpi{ static_cast<KEY_VALUE_PARTIAL_INFORMATION*>(
-                    ExAllocatePoolWithTag(PagedPool, cbKvpi, TAG_REGISTRY_PARAMETER)) };
+                    ExAllocatePool2(POOL_FLAG_PAGED, cbKvpi, TAG_REGISTRY_PARAMETER)) };
                 if (!kvpi.is_valid())
                 {
                     LEAVE_WITH(rc = STATUS_INSUFFICIENT_RESOURCES);
