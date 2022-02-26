@@ -1,4 +1,4 @@
 #include "pch.h"
 #include "GlobalData.h"
 
-NfGlobalData globalData;
+NfGlobalData GlobalData;

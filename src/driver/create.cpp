@@ -13,7 +13,7 @@ _Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(
     ULONG_PTR information{ 0 };
     TRY
     {
-        auto irpSp = IoGetCurrentIrpStackLocation(irp);
+        const auto irpSp = IoGetCurrentIrpStackLocation(irp);
 
         // If we were called with our file system device object instead of a volume device object just complete with
         // STATUS_SUCCESS

@@ -15,7 +15,7 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
     NTSTATUS rc{ STATUS_NOT_IMPLEMENTED };
     TRY
     {
-        auto irpSp = IoGetCurrentIrpStackLocation(irp);
+        const auto irpSp = IoGetCurrentIrpStackLocation(irp);
 
         switch (irpSp->Parameters.DeviceIoControl.IoControlCode)
         {
@@ -23,17 +23,17 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
         case IOCTL_NULLFS_SHUTDOWN:
             NfTraceDeviceControl(WINEVENT_LEVEL_VERBOSE, "Shutdown", TraceLoggingPointer(deviceObject));
 
-            if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
+            if (FlagOn(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
             {
-                ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
-                IoUnregisterFileSystem(globalData.fileSystemDeviceObject);
+                ClearFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
+                IoUnregisterFileSystem(GlobalData.fileSystemDeviceObject);
 
                 // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks
                 // for this undocumented 0x80 flag, and refuses to unload the driver, even after it has done all the
                 // checks for reference counts and attached devices and all that.
 #pragma warning(suppress : 28175)   // Ok for file system driver
 #pragma warning(suppress : 28176)   // Ok for file system driver
-                globalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
+                GlobalData.fileSystemDeviceObject->DriverObject->Flags &= ~0x80;
             }
 
             rc = STATUS_SUCCESS;

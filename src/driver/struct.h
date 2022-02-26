@@ -21,8 +21,6 @@ struct NfVolumeControlBlock
     DEVICE_OBJECT* targetDeviceObject;   // Pointer to the actual physical/virtual device (or a top-level filter on that
                                          // device). Any IRPs we send should go to this.
 
-    DEVICE_OBJECT* volumeDeviceObject;   // Pointer to the newly created device object
-
     VPB* vpb;
 
     FILE_OBJECT* streamFileObject;
@@ -37,5 +35,5 @@ struct NfVolumeDeviceObject
     NfVolumeControlBlock vcb;
 };
 
-NfVolumeControlBlock* NfpInitializeVCB(NfVolumeControlBlock* vcb, VPB* vpb);
-void NfUninitializeVCB(NfVolumeControlBlock* vcb);
+NfVolumeControlBlock* NfpInitializeVcb(NfVolumeControlBlock* vcb, VPB* vpb, DEVICE_OBJECT* targetDeviceObject);
+void NfUninitializeVcb(NfVolumeControlBlock* vcb);

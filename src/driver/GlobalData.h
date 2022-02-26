@@ -25,4 +25,4 @@ struct NfGlobalData
     } Parameters;
 };
 
-extern NfGlobalData globalData;
+extern NfGlobalData GlobalData;

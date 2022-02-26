@@ -15,28 +15,28 @@ using unique_registry_parameter_data =
 
 void NfUninitializeFileSystemDeviceObject()
 {
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED))
+    if (FlagOn(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED))
     {
         UNICODE_STRING symbolicLinkName;
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
+        ClearFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
         RtlInitUnicodeString(&symbolicLinkName, NF_DRIVER_SYMBOLIC_NAME);
         IoDeleteSymbolicLink(&symbolicLinkName);
     }
 
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED))
+    if (FlagOn(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED))
     {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
-        IoDeleteDevice(globalData.fileSystemDeviceObject);
-        globalData.fileSystemDeviceObject = nullptr;
+        ClearFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
+        IoDeleteDevice(GlobalData.fileSystemDeviceObject);
+        GlobalData.fileSystemDeviceObject = nullptr;
     }
 }
 
 void NfUninitializeGlobals()
 {
-    if (FlagOn(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
+    if (FlagOn(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED))
     {
-        ClearFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
-        ExDeleteResourceLite(&globalData.lock);
+        ClearFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
+        ExDeleteResourceLite(&GlobalData.lock);
     }
 }
 
@@ -48,19 +48,19 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
 
     NfUninitializeFileSystemDeviceObject();
 
-    ExAcquireResourceExclusiveLite(&globalData.lock, TRUE);
+    ExAcquireResourceExclusiveLite(&GlobalData.lock, TRUE);
 
-    for (auto entry = globalData.nextVCB.Flink; entry->Flink != &globalData.nextVCB; entry = entry->Flink)
+    for (auto entry = GlobalData.nextVCB.Flink; entry->Flink != &GlobalData.nextVCB; entry = entry->Flink)
     {
         NfVolumeControlBlock* vcb = CONTAINING_RECORD(entry, NfVolumeControlBlock, nextVCB);
-        NfUninitializeVCB(vcb);
+        NfUninitializeVcb(vcb);
     }
 
-    ExReleaseResourceLite(&globalData.lock);
+    ExReleaseResourceLite(&GlobalData.lock);
 
     NfUninitializeGlobals();
 
-    TraceLoggingUnregister(Logging::g_hProvider);
+    TraceLoggingUnregister(Logging::TraceLoggingProviderHandle);
 }
 
 // ---------------------------------------------------------------------------
@@ -69,26 +69,26 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
 
 NTSTATUS NfInitializeFileSystemDeviceObject()
 {
-    ASSERT(globalData.driverObject);
+    ASSERT(GlobalData.driverObject);
 
     NTSTATUS rc{ STATUS_SUCCESS };
     TRY
     {
         UNICODE_STRING driverDeviceName = RTL_CONSTANT_STRING(NF_DRIVER_DEVICE_NAME);
         // TODO: Should be using FILE_DEVICE_SECURE_OPEN for security?
-        rc = IoCreateDevice(globalData.driverObject, 0, &driverDeviceName, NF_DEVICE_TYPE, 0, FALSE,
-                            &globalData.fileSystemDeviceObject);
+        rc = IoCreateDevice(GlobalData.driverObject, 0, &driverDeviceName, NF_DEVICE_TYPE, 0, FALSE,
+                            &GlobalData.fileSystemDeviceObject);
         LEAVE_IF_NOT_SUCCESS(rc);
-        SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
+        SetFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_DRIVER_DEVICE_CREATED);
 
         UNICODE_STRING symbolicLinkName = RTL_CONSTANT_STRING(NF_DRIVER_SYMBOLIC_NAME);
         rc = IoCreateSymbolicLink(&symbolicLinkName, &driverDeviceName);
         LEAVE_IF_NOT_SUCCESS(rc);
-        SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
+        SetFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_SYMBOLIC_LINK_CREATED);
 
         // Register our file system with the I/O subsystem (also adds a reference to the object)
-        IoRegisterFileSystem(globalData.fileSystemDeviceObject);
-        SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
+        IoRegisterFileSystem(GlobalData.fileSystemDeviceObject);
+        SetFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
     }
     FINALLY
     {
@@ -98,13 +98,13 @@ NTSTATUS NfInitializeFileSystemDeviceObject()
 
 void NfInitializeFsdDispatch()
 {
-    ASSERT(globalData.driverObject);
+    ASSERT(GlobalData.driverObject);
 
     // See p.396
 #pragma warning(push)
 #pragma warning(disable : 28175)   // Ok for file system driver
-    globalData.driverObject->MajorFunction[IRP_MJ_CREATE] = (PDRIVER_DISPATCH)NfFsdCreate;
-    globalData.driverObject->MajorFunction[IRP_MJ_CLOSE] = (PDRIVER_DISPATCH)NfFsdClose;
+    GlobalData.driverObject->MajorFunction[IRP_MJ_CREATE] = (PDRIVER_DISPATCH)NfFsdCreate;
+    GlobalData.driverObject->MajorFunction[IRP_MJ_CLOSE] = (PDRIVER_DISPATCH)NfFsdClose;
     // globalData.driverObject->MajorFunction[IRP_MJ_READ] = (PDRIVER_DISPATCH)NfFsdRead;
     // globalData.driverObject->MajorFunction[IRP_MJ_WRITE] = (PDRIVER_DISPATCH)NfFsdWrite;
     // globalData.driverObject->MajorFunction[IRP_MJ_QUERY_INFORMATION] = (PDRIVER_DISPATCH)NfFsdQueryInformation;
@@ -116,15 +116,15 @@ void NfInitializeFsdDispatch()
     // (PDRIVER_DISPATCH)NfFsdQueryVolumeInformation;
     // globalData.driverObject->MajorFunction[IRP_MJ_SET_VOLUME_INFORMATION] =
     // (PDRIVER_DISPATCH)NfFsdSetVolumeInformation;
-    globalData.driverObject->MajorFunction[IRP_MJ_CLEANUP] = (PDRIVER_DISPATCH)NfFsdCleanup;
+    GlobalData.driverObject->MajorFunction[IRP_MJ_CLEANUP] = (PDRIVER_DISPATCH)NfFsdCleanup;
     // globalData.driverObject->MajorFunction[IRP_MJ_DIRECTORY_CONTROL] = (PDRIVER_DISPATCH)NfFsdDirectoryControl;
-    globalData.driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)NfFsdFileSystemControl;
+    GlobalData.driverObject->MajorFunction[IRP_MJ_FILE_SYSTEM_CONTROL] = (PDRIVER_DISPATCH)NfFsdFileSystemControl;
     // globalData.driverObject->MajorFunction[IRP_MJ_LOCK_CONTROL] = (PDRIVER_DISPATCH)NfFsdLockControl;
-    globalData.driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)NfFsdDeviceControl;
-    globalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
-    globalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
+    GlobalData.driverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = (PDRIVER_DISPATCH)NfFsdDeviceControl;
+    GlobalData.driverObject->MajorFunction[IRP_MJ_SHUTDOWN] = (PDRIVER_DISPATCH)NfFsdShutdown;
+    GlobalData.driverObject->MajorFunction[IRP_MJ_PNP] = (PDRIVER_DISPATCH)NfFsdPnp;
 
-    auto fastIoDispatch = globalData.driverObject->FastIoDispatch = &globalData.fastIoDispatch;
+    auto fastIoDispatch = GlobalData.driverObject->FastIoDispatch = &GlobalData.fastIoDispatch;
     fastIoDispatch->SizeOfFastIoDispatch = sizeof(FAST_IO_DISPATCH);
     // TODO: Initialize the FastIO stuff as well
 #pragma warning(pop)
@@ -135,20 +135,20 @@ NTSTATUS NfInitializeGlobals(_In_ PDRIVER_OBJECT driverObject)
     NTSTATUS rc{ STATUS_SUCCESS };
     TRY
     {
-        RtlZeroMemory(&globalData, sizeof(globalData));
+        RtlZeroMemory(&GlobalData, sizeof(GlobalData));
 
-        globalData.driverObject = driverObject;
+        GlobalData.driverObject = driverObject;
 
-        globalData.cacheManagerCallbacks.AcquireForLazyWrite = globalData.cacheManagerCallbacks.AcquireForReadAhead =
+        GlobalData.cacheManagerCallbacks.AcquireForLazyWrite = GlobalData.cacheManagerCallbacks.AcquireForReadAhead =
             NfCmAcquireNoOp;
-        globalData.cacheManagerCallbacks.ReleaseFromLazyWrite = globalData.cacheManagerCallbacks.ReleaseFromReadAhead =
+        GlobalData.cacheManagerCallbacks.ReleaseFromLazyWrite = GlobalData.cacheManagerCallbacks.ReleaseFromReadAhead =
             NfCmReleaseNoOp;
 
-        InitializeListHead(&(globalData.nextVCB));
+        InitializeListHead(&(GlobalData.nextVCB));
 
-        rc = ExInitializeResourceLite(&globalData.lock);
+        rc = ExInitializeResourceLite(&GlobalData.lock);
         LEAVE_IF_NOT_SUCCESS(rc);
-        SetFlag(globalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
+        SetFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_RESOURCE_INITIALIZED);
     }
     FINALLY
     {
@@ -191,7 +191,7 @@ NTSTATUS NfInitializeParameters(_In_ UNICODE_STRING* registryPath)
                                      cbKvpi, &returnLength);
                 if (STATUS_SUCCESS == rc && kvpi.get()->Type == REG_DWORD && kvpi.get()->DataLength == sizeof(ULONG))
                 {
-                    globalData.Parameters.BreakOnLoad = (0 != *((PULONG)&kvpi.get()->Data[0]));
+                    GlobalData.Parameters.BreakOnLoad = (0 != *((PULONG)&kvpi.get()->Data[0]));
                 }
 
                 //UNICODE_STRING breakOnNtStatusValueName = RTL_CONSTANT_STRING(L"BreakOnNtStatus");
@@ -221,7 +221,7 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
     {
         UNREFERENCED_PARAMETER(registryPath);
 
-        TraceLoggingRegister(Logging::g_hProvider);
+        TraceLoggingRegister(Logging::TraceLoggingProviderHandle);
 
         NfTraceCommon(WINEVENT_LEVEL_INFO, "Entry", TraceLoggingString(__TIMESTAMP__, "BuildTimestamp"));
 
@@ -231,7 +231,7 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
         rc = NfInitializeParameters(registryPath);
         LEAVE_IF_NOT_SUCCESS(rc);
 
-        if (globalData.Parameters.BreakOnLoad)
+        if (GlobalData.Parameters.BreakOnLoad)
         {
             DbgBreakPoint();
         }
