@@ -21,12 +21,12 @@ _Dispatch_type_(IRP_MJ_CLEANUP) _Function_class_(IRP_MJ_CLEANUP) _Function_class
 
         if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfTraceCleanup(WINEVENT_LEVEL_VERBOSE, "Fsdo", TraceLoggingPointer(deviceObject));
+            NfTraceCleanup(WINEVENT_LEVEL_VERBOSE, "Cleanup_Fsdo", TraceLoggingPointer(deviceObject));
             information = FILE_OPENED;
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        NfTraceCleanup(WINEVENT_LEVEL_VERBOSE, "File", TraceLoggingPointer(deviceObject),
+        NfTraceCleanup(WINEVENT_LEVEL_VERBOSE, "Cleanup_File", TraceLoggingPointer(deviceObject),
                        TraceLoggingPointer(irpSp->FileObject, "fileObject"));
         rc = STATUS_SUCCESS;
     }

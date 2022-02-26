@@ -19,12 +19,12 @@ _Dispatch_type_(IRP_MJ_CLOSE) _Function_class_(IRP_MJ_CLOSE) _Function_class_(DR
 
         if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfTraceClose(WINEVENT_LEVEL_VERBOSE, "Fsdo", TraceLoggingPointer(deviceObject));
+            NfTraceClose(WINEVENT_LEVEL_VERBOSE, "Close_Fsdo", TraceLoggingPointer(deviceObject));
             information = FILE_OPENED;
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        NfTraceClose(WINEVENT_LEVEL_VERBOSE, "File", TraceLoggingPointer(deviceObject),
+        NfTraceClose(WINEVENT_LEVEL_VERBOSE, "Close_File", TraceLoggingPointer(deviceObject),
                      TraceLoggingPointer(irpSp->FileObject, "fileObject"));
         rc = STATUS_SUCCESS;
     }

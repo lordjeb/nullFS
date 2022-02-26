@@ -148,7 +148,7 @@ NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
             LEAVE_WITH(rc = STATUS_UNRECOGNIZED_VOLUME);
         }
 
-        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "VolumeMounted");
+        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "VolumeMountedSuccessfully");
 
         rc = STATUS_SUCCESS;
     }
@@ -171,7 +171,7 @@ NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
                 // VCB was never initialized, so we need to just delete the device object
                 IoDeleteDevice(&(volumeDeviceObject->deviceObject));
 
-                NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "VdoDeleted",
+                NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "VdoDeletedAfterFailure",
                               TraceLoggingPointer(&(volumeDeviceObject->deviceObject), "volumeDeviceObject"));
             }
 
@@ -187,19 +187,19 @@ NTSTATUS NfUserFsCtrl(const PIO_STACK_LOCATION irpSp)
     switch (irpSp->Parameters.FileSystemControl.FsControlCode)
     {
     case FSCTL_LOCK_VOLUME:
-        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "LockVolume");
+        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UserFsCtrl_LockVolume");
         break;
 
     case FSCTL_UNLOCK_VOLUME:
-        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UnlockVolume");
+        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UserFsCtrl_UnlockVolume");
         break;
 
     case FSCTL_DISMOUNT_VOLUME:
-        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "DismountVolume");
+        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UserFsCtrl_DismountVolume");
         break;
 
     default:
-        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UnhandledFsControlCode",
+        NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UserFsCtrl_UnhandledFsControlCode",
                       TraceLoggingULong(irpSp->Parameters.FileSystemControl.FsControlCode, "FsControlCode"));
         break;
     }
@@ -219,13 +219,13 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
         switch (irpSp->MinorFunction)
         {
         case IRP_MN_USER_FS_REQUEST:
-            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UserFsRequest", TraceLoggingPointer(deviceObject));
+            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "FsCtrl_UserFsRequest", TraceLoggingPointer(deviceObject));
 
             rc = NfUserFsCtrl(irpSp);
             break;
 
         case IRP_MN_MOUNT_VOLUME:
-            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "MountVolume", TraceLoggingPointer(deviceObject),
+            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "FsCtrl_MountVolume", TraceLoggingPointer(deviceObject),
                           TraceLoggingPointer(irpSp->Parameters.MountVolume.DeviceObject, "mountingDeviceObject"),
                           TraceLoggingPointer(irpSp->Parameters.MountVolume.Vpb, "vpb"));
 
@@ -233,11 +233,11 @@ _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_
             break;
 
         case IRP_MN_VERIFY_VOLUME:
-            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "VerifyVolume", TraceLoggingPointer(deviceObject));
+            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "FsCtrl_VerifyVolume", TraceLoggingPointer(deviceObject));
             break;
 
         default:
-            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "UnhandledMinorFunction", TraceLoggingPointer(deviceObject),
+            NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "FsCtrl_UnhandledMinorFunction", TraceLoggingPointer(deviceObject),
                           TraceLoggingUInt8(irpSp->MinorFunction, "MinorFunction"));
             break;
         }

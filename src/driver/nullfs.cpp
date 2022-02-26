@@ -44,7 +44,7 @@ _Function_class_(DRIVER_UNLOAD) void NfDriverUnload(_In_ PDRIVER_OBJECT driverOb
 {
     UNREFERENCED_PARAMETER(driverObject);
 
-    NfTraceCommon(WINEVENT_LEVEL_INFO, "Unload");
+    NfTraceCommon(WINEVENT_LEVEL_INFO, "DriverUnload");
 
     NfUninitializeFileSystemDeviceObject();
 
@@ -223,7 +223,7 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
 
         TraceLoggingRegister(Logging::TraceLoggingProviderHandle);
 
-        NfTraceCommon(WINEVENT_LEVEL_INFO, "Entry", TraceLoggingString(__TIMESTAMP__, "BuildTimestamp"));
+        NfTraceCommon(WINEVENT_LEVEL_INFO, "DriverEntry", TraceLoggingString(__TIMESTAMP__, "BuildTimestamp"));
 
         rc = NfInitializeGlobals(driverObject);
         LEAVE_IF_NOT_SUCCESS(rc);
@@ -251,7 +251,7 @@ extern "C" NTSTATUS DriverEntry(_In_ DRIVER_OBJECT* driverObject, _In_ UNICODE_S
     {
         if (!NT_SUCCESS(rc))
         {
-            NfTraceCommon(WINEVENT_LEVEL_ERROR, "Failed");
+            NfTraceCommon(WINEVENT_LEVEL_ERROR, "DriverEntryFailed");
 
             NfDriverUnload(driverObject);
         }

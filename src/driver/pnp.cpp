@@ -36,7 +36,7 @@ _Dispatch_type_(IRP_MJ_PNP) _Function_class_(IRP_MJ_PNP) _Function_class_(DRIVER
         switch (irpSp->MinorFunction)
         {
         case IRP_MN_SURPRISE_REMOVAL: {
-            NfTracePnp(WINEVENT_LEVEL_INFO, "SurpriseRemoval", TraceLoggingPointer(deviceObject));
+            NfTracePnp(WINEVENT_LEVEL_INFO, "Pnp_SurpriseRemoval", TraceLoggingPointer(deviceObject));
 
             // TODO: Tear down the Vdo created in NfMountVolume
             // TODO: Check reference counts on vpb, open count, etc. (See FatCheckForDismount)
@@ -65,7 +65,7 @@ _Dispatch_type_(IRP_MJ_PNP) _Function_class_(IRP_MJ_PNP) _Function_class_(DRIVER
         }
 
         default:
-            NfTracePnp(WINEVENT_LEVEL_INFO, "UnhandledMinorFn", TraceLoggingPointer(deviceObject),
+            NfTracePnp(WINEVENT_LEVEL_INFO, "Pnp_UnhandledMinorFn", TraceLoggingPointer(deviceObject),
                        TraceLoggingUInt8(irpSp->MinorFunction, "MinorFunction"));
             break;
         }
