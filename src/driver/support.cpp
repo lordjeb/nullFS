@@ -2,7 +2,7 @@
 #include "support.h"
 #include "GlobalData.h"
 
-NTSTATUS NfCompleteRequest(_In_ PIRP irp, NTSTATUS status, ULONG_PTR information)
+NTSTATUS NfCompleteRequest(_In_ PIRP irp, const NTSTATUS status, const ULONG_PTR information)
 {
     irp->IoStatus.Status = status;
     irp->IoStatus.Information = information;

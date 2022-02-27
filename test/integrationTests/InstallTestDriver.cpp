@@ -12,34 +12,34 @@ InstallTestDriver::~InstallTestDriver()
 {
     if (installed_)
     {
-        uninstall();
+        Uninstall();
     }
 }
 
-std::wstring InstallTestDriver::ensureQuoted(const std::wstring& s)
+std::wstring InstallTestDriver::EnsureQuoted(const std::wstring& s)
 {
-    const wchar_t QUOTE = L'\"';
-    auto pos = s.find(L' ');
+    constexpr wchar_t QUOTE = L'\"';
+    const auto        pos = s.find(L' ');
     return std::wstring::npos == pos ? s : QUOTE + s + QUOTE;
 }
 
 void InstallTestDriver::install()
 {
-    installInfSection(L"DefaultInstall");
+    InstallInfSection(L"DefaultInstall");
     // TODO: Detect error and throw
 
     installed_ = true;
 }
 
-void InstallTestDriver::installInfSection(const std::wstring& section)
+void InstallTestDriver::InstallInfSection(const std::wstring& section)
 {
-    auto command = section + L" 128 " + ensureQuoted(infFile_);
-#pragma warning(suppress:6387) // This usage conforms to the examples for the function
+    const auto command = section + L" 128 " + EnsureQuoted(infFile_);
+#pragma warning(suppress : 6387)   // This usage conforms to the examples for the function
     InstallHinfSection(nullptr, nullptr, command.c_str(), 0);
 }
 
-void InstallTestDriver::uninstall()
+void InstallTestDriver::Uninstall()
 {
-    installInfSection(L"DefaultUninstall");
+    InstallInfSection(L"DefaultUninstall");
     // TODO: Detect error and throw
 }

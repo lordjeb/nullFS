@@ -9,11 +9,11 @@ public:
     void install();
 
 private:
-    bool installed_{ false };
+    bool         installed_{ false };
     std::wstring serviceName_;
     std::wstring infFile_;
 
-    std::wstring ensureQuoted(const std::wstring& s);
-    void installInfSection(const std::wstring& section);
-    void uninstall();
+    static std::wstring EnsureQuoted(const std::wstring& s);
+    void                InstallInfSection(const std::wstring& section);
+    void                Uninstall();
 };

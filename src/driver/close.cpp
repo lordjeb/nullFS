@@ -8,7 +8,7 @@
 _Dispatch_type_(IRP_MJ_CLOSE) _Function_class_(IRP_MJ_CLOSE) _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
     NfFsdClose(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
-    NTSTATUS rc{ STATUS_NOT_IMPLEMENTED };
+    NTSTATUS  rc;
     ULONG_PTR information{ 0 };
     TRY
     {

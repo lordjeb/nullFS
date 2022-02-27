@@ -4,7 +4,6 @@ class VirtualDisk
 {
 public:
     VirtualDisk(const std::wstring& vhdFilename);
-    virtual ~VirtualDisk();
 
     void AssignDriveLetter(const std::wstring& driveLetter);
     void Attach();
@@ -15,9 +14,9 @@ public:
 
 private:
     const std::wstring vhdFilename_;
-    wil::unique_hfile vhd_;
+    wil::unique_hfile  vhd_;
 
-    void Initialize();
+    void         Initialize();
     std::wstring GetVolumeName();
     std::wstring WaitForVolumeName(long waitTimeMs);
 };

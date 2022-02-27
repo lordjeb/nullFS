@@ -23,9 +23,9 @@ _Dispatch_type_(IRP_MJ_DEVICE_CONTROL) _Function_class_(IRP_MJ_DEVICE_CONTROL)
         case IOCTL_NULLFS_SHUTDOWN:
             NfTraceDeviceControl(WINEVENT_LEVEL_VERBOSE, "Shutdown", TraceLoggingPointer(deviceObject));
 
-            if (FlagOn(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED))
+            if (WI_IsFlagSet(GlobalData.flags, NfGlobalDataFlags_File_System_Registered))
             {
-                ClearFlag(GlobalData.flags, NF_GLOBAL_DATA_FLAGS_FILE_SYSTEM_REGISTERED);
+                WI_ClearFlag(GlobalData.flags, NfGlobalDataFlags_File_System_Registered);
                 IoUnregisterFileSystem(GlobalData.fileSystemDeviceObject);
 
                 // Complete hack that will allow our driver to unload. It appears that IopCheckDriverUnload looks

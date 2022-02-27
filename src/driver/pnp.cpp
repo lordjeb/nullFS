@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "flowControl.h"
 #include "dispatchRoutines.h"
+#include "nodeType.h"
+#include "struct.h"
 
 NTSTATUS
 NfPnpCompletionRoutine(_In_ PDEVICE_OBJECT deviceObject, _In_ PIRP irp,
@@ -24,9 +26,10 @@ _Dispatch_type_(IRP_MJ_PNP) _Function_class_(IRP_MJ_PNP) _Function_class_(DRIVER
 
         const auto nfDeviceObject = reinterpret_cast<NfVolumeDeviceObject*>(irpSp->DeviceObject);
 
-        // TODO: Check a NodeType code for this to stay safe!
+        // TODO: Enable the node type check below for safety and make sure it works without PNP crash due to completing Irp with non-success status
 #pragma warning(suppress : 28175)   // Ok for file system driver
-        if (nfDeviceObject->deviceObject.Size != sizeof(NfVolumeDeviceObject))
+        if (nfDeviceObject->deviceObject.Size != sizeof(NfVolumeDeviceObject) /*||
+            NodeType(nfDeviceObject) != NfNodeTypeCodeVolumeControlBlock*/)
         {
             LEAVE_WITH(rc = STATUS_INVALID_PARAMETER);
         }
@@ -55,10 +58,12 @@ _Dispatch_type_(IRP_MJ_PNP) _Function_class_(IRP_MJ_PNP) _Function_class_(DRIVER
                 rc = irp->IoStatus.Status;
             }
 
-            const auto volumeDeviceObject = vcb->vpb->DeviceObject;
-            vcb->vpb->DeviceObject = nullptr;
+            WI_ClearFlag(vcb->vpb->Flags, VPB_MOUNTED);
 
             NfUninitializeVcb(vcb);
+
+            const auto volumeDeviceObject = vcb->vpb->DeviceObject;
+            vcb->vpb->DeviceObject = nullptr;
 
             IoDeleteDevice(volumeDeviceObject);
             break;

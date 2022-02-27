@@ -4,26 +4,26 @@
 
 using ::testing::Eq;
 
-constexpr const wchar_t driverServiceName[] = NF_NAME;
+constexpr const wchar_t DriverServiceName[] = NF_NAME;
 
 NullFsDriverEnvironment::NullFsDriverEnvironment()
-    : installTestDriver_{ driverServiceName, getWorkingDirectory() + L"\\nullfs.inf" },
-      startTestDriver_{ driverServiceName }
+    : installTestDriver_{ DriverServiceName, GetWorkingDirectory() + L"\\nullfs.inf" },
+      startTestDriver_{ DriverServiceName }
 {
 }
 
 void NullFsDriverEnvironment::SetUp()
 {
-    ASSERT_TRUE(isUserAdmin());
+    ASSERT_TRUE(IsUserAdmin());
     installTestDriver_.install();
-    startTestDriver_.start();
+    startTestDriver_.Start();
 }
 
 void NullFsDriverEnvironment::TearDown()
 {
     // Send hack IOCTL to allow our FS driver to unload
-    wil::unique_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr,
-                                       OPEN_EXISTING, 0, nullptr) };
+    const wil::unique_handle hFs{ CreateFile(NF_WIN32_DEVICE_NAME, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                             nullptr, OPEN_EXISTING, 0, nullptr) };
     if (hFs.is_valid())
     {
         EXPECT_THAT(DeviceIoControl(hFs.get(), IOCTL_NULLFS_SHUTDOWN, nullptr, 0, nullptr, 0, nullptr, nullptr),
@@ -32,27 +32,28 @@ void NullFsDriverEnvironment::TearDown()
     }
 }
 
-std::wstring NullFsDriverEnvironment::getWorkingDirectory()
+std::wstring NullFsDriverEnvironment::GetWorkingDirectory()
 {
     std::vector<wchar_t> workingDirectory(MAX_PATH);
     ::GetCurrentDirectory(static_cast<DWORD>(workingDirectory.size()), &workingDirectory[0]);
     return std::wstring{ &workingDirectory[0] };
 }
 
-bool NullFsDriverEnvironment::isUserAdmin()
+bool NullFsDriverEnvironment::IsUserAdmin()
 {
-    BOOL b;
-    SID_IDENTIFIER_AUTHORITY NtAuthority = SECURITY_NT_AUTHORITY;
-    PSID AdministratorsGroup;
-    b = AllocateAndInitializeSid(&NtAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0,
-                                 0, &AdministratorsGroup);
+    BOOL                     b;
+    SID_IDENTIFIER_AUTHORITY ntAuthority = SECURITY_NT_AUTHORITY;
+    PSID                     administratorsGroup;
+
+    b = AllocateAndInitializeSid(&ntAuthority, 2, SECURITY_BUILTIN_DOMAIN_RID, DOMAIN_ALIAS_RID_ADMINS, 0, 0, 0, 0, 0,
+                                 0, &administratorsGroup);
     if (b)
     {
-        if (!CheckTokenMembership(nullptr, AdministratorsGroup, &b))
+        if (!CheckTokenMembership(nullptr, administratorsGroup, &b))
         {
             b = FALSE;
         }
-        FreeSid(AdministratorsGroup);
+        FreeSid(administratorsGroup);
     }
 
     return FALSE != b;

@@ -12,28 +12,23 @@ struct NfVolumeControlBlock
     // Filesize and allocation size?
     // Valid data length
 
-    ERESOURCE lock;
-
-    LIST_ENTRY nextVCB;
-
-    ULONG flags;
-
-    DEVICE_OBJECT* targetDeviceObject;   // Pointer to the actual physical/virtual device (or a top-level filter on that
-                                         // device). Any IRPs we send should go to this.
-
-    VPB* vpb;
-
-    FILE_OBJECT* streamFileObject;
-
-    SECTION_OBJECT_POINTERS sectionObjectPointers;
+    FSRTL_ADVANCED_FCB_HEADER volumeFileHeader;
+    FAST_MUTEX                advancedFcbHeaderMutex;
+    ERESOURCE                 lock;
+    LIST_ENTRY                vcbListEntry;
+    ULONG                     flags;
+    DEVICE_OBJECT*            targetDeviceObject;
+    VPB*                      vpb;
+    FILE_OBJECT*              virtualVolumeFile;
+    SECTION_OBJECT_POINTERS   sectionObjectPointers;
 };
 
 struct NfVolumeDeviceObject
 {
-    DEVICE_OBJECT deviceObject;
-
+    DEVICE_OBJECT        deviceObject;
     NfVolumeControlBlock vcb;
 };
 
 NfVolumeControlBlock* NfpInitializeVcb(NfVolumeControlBlock* vcb, VPB* vpb, DEVICE_OBJECT* targetDeviceObject);
+
 void NfUninitializeVcb(NfVolumeControlBlock* vcb);

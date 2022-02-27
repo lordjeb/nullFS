@@ -90,6 +90,9 @@
     <ClInclude Include="traceLogging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nodeType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="nullfs.inf">

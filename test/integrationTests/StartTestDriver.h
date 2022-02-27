@@ -6,12 +6,12 @@ public:
     StartTestDriver(const std::wstring& serviceName);
     ~StartTestDriver();
 
-    void start();
+    void Start();
 
 private:
-    bool started_{ false };
+    bool         started_{ false };
     std::wstring serviceName_;
 
-    wil::unique_schandle open(DWORD desiredAccess = SERVICE_QUERY_STATUS);
-    void stop();
+    wil::unique_schandle Open(DWORD desiredAccess = SERVICE_QUERY_STATUS) const;
+    void                 Stop();
 };

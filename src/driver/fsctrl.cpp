@@ -13,8 +13,8 @@ NfpPerformDevIoCtrl(_In_ ULONG ioControlCode, _In_ PDEVICE_OBJECT device, _In_op
                     _In_ ULONG inputBufferLength, _Out_opt_ PVOID outputBuffer, _In_ ULONG outputBufferLength,
                     _In_ BOOLEAN internalDeviceIoControl, _In_ BOOLEAN overrideVerify, _Out_opt_ PIO_STATUS_BLOCK iosb)
 {
-    NTSTATUS rc;
-    IO_STATUS_BLOCK localIosb{};
+    NTSTATUS         rc;
+    IO_STATUS_BLOCK  localIosb{};
     PIO_STATUS_BLOCK iosbToUse = &localIosb;
 
     if (iosb != nullptr)
@@ -28,17 +28,14 @@ NfpPerformDevIoCtrl(_In_ ULONG ioControlCode, _In_ PDEVICE_OBJECT device, _In_op
     KEVENT event;
     KeInitializeEvent(&event, NotificationEvent, FALSE);
 
-    IRP* irp = IoBuildDeviceIoControlRequest(ioControlCode, device, inputBuffer, inputBufferLength, outputBuffer,
+    PIRP irp = IoBuildDeviceIoControlRequest(ioControlCode, device, inputBuffer, inputBufferLength, outputBuffer,
                                              outputBufferLength, internalDeviceIoControl, &event, iosbToUse);
     if (irp == nullptr)
     {
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
-    if (overrideVerify)
-    {
-        SetFlag(IoGetNextIrpStackLocation(irp)->Flags, SL_OVERRIDE_VERIFY_VOLUME);
-    }
+    WI_SetFlagIf(IoGetNextIrpStackLocation(irp)->Flags, SL_OVERRIDE_VERIFY_VOLUME, overrideVerify);
 
     rc = IoCallDriver(device, irp);
 
@@ -79,16 +76,16 @@ NTSTATUS NfpReadStorage(DEVICE_OBJECT* deviceObject, long long offset, unsigned 
 
 NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
 {
-    NTSTATUS rc{ STATUS_UNRECOGNIZED_VOLUME };
-    DEVICE_OBJECT* targetDeviceObject{ irpSp->Parameters.MountVolume.DeviceObject };
-    VPB* vpb{ irpSp->Parameters.MountVolume.Vpb };
+    NTSTATUS              rc{ STATUS_UNRECOGNIZED_VOLUME };
+    DEVICE_OBJECT*        targetDeviceObject{ irpSp->Parameters.MountVolume.DeviceObject };
+    VPB*                  vpb{ irpSp->Parameters.MountVolume.Vpb };
     NfVolumeDeviceObject* volumeDeviceObject{ nullptr };
-    bool weClearedVerifyRequiredBit{ false };
+    bool                  weClearedVerifyRequiredBit{ false };
     NfVolumeControlBlock* vcb{ nullptr };
 
     TRY
     {
-        if (FlagOn(targetDeviceObject->Characteristics, FILE_REMOVABLE_MEDIA))
+        if (WI_IsFlagSet(targetDeviceObject->Characteristics, FILE_REMOVABLE_MEDIA))
         {
             // TODO: Make sure there is media in the drive?
         }
@@ -106,7 +103,8 @@ NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
         LEAVE_IF_NOT_SUCCESS(rc);
 
         rc = IoCreateDevice(GlobalData.driverObject, sizeof(NfVolumeDeviceObject) - sizeof(DEVICE_OBJECT), nullptr,
-                            FILE_DEVICE_DISK_FILE_SYSTEM, 0, FALSE, reinterpret_cast<DEVICE_OBJECT**>(&volumeDeviceObject));
+                            FILE_DEVICE_DISK_FILE_SYSTEM, 0, FALSE,
+                            reinterpret_cast<DEVICE_OBJECT**>(&volumeDeviceObject));
         LEAVE_IF_NOT_SUCCESS(rc);
 
         NfTraceFsCtrl(WINEVENT_LEVEL_VERBOSE, "VdoCreated", TraceLoggingPointer(volumeDeviceObject));
@@ -116,27 +114,27 @@ NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
             volumeDeviceObject->deviceObject.AlignmentRequirement = targetDeviceObject->AlignmentRequirement;
         }
 
-        volumeDeviceObject->deviceObject.StackSize = targetDeviceObject->StackSize + 1;
+        volumeDeviceObject->deviceObject.StackSize = 1 + targetDeviceObject->StackSize;
 #pragma warning(suppress : 28175)   // Ok for file system driver
         volumeDeviceObject->deviceObject.SectorSize = static_cast<USHORT>(geometry.BytesPerSector);
 
         // Indicate that the device object is fully initialized
-        ClearFlag(volumeDeviceObject->deviceObject.Flags, DO_DEVICE_INITIALIZING);
+        WI_ClearFlag(volumeDeviceObject->deviceObject.Flags, DO_DEVICE_INITIALIZING);
 
-        // Required for creating the streamFileObject for the volume in NfpInitializeVCB
+        // Required for creating the virtualVolumeFile for the volume in NfpInitializeVCB
         vpb->DeviceObject = reinterpret_cast<DEVICE_OBJECT*>(volumeDeviceObject);
 
         // Clear DO_VERIFY_VOLUME so we can do reads
-        if (FlagOn(vpb->RealDevice->Flags, DO_VERIFY_VOLUME))
+        if (WI_IsFlagSet(vpb->RealDevice->Flags, DO_VERIFY_VOLUME))
         {
-            ClearFlag(vpb->RealDevice->Flags, DO_VERIFY_VOLUME);
+            WI_ClearFlag(vpb->RealDevice->Flags, DO_VERIFY_VOLUME);
             weClearedVerifyRequiredBit = true;
         }
 
         NfpInitializeVcb(&volumeDeviceObject->vcb, vpb, targetDeviceObject);
         vcb = &(volumeDeviceObject->vcb);
 
-        const auto sectorSize = geometry.BytesPerSector;
+        const auto                                                            sectorSize = geometry.BytesPerSector;
         wil::unique_tagged_pool_ptr<NfFirstSector*, TAG_REGISTRY_SECTOR_DATA> buffer{ static_cast<NfFirstSector*>(
             ExAllocatePool2(POOL_FLAG_NON_PAGED | POOL_FLAG_CACHE_ALIGNED, sectorSize, TAG_REGISTRY_SECTOR_DATA)) };
         rc = NfpReadStorage(targetDeviceObject, 0, sectorSize, buffer.get());
@@ -154,10 +152,7 @@ NTSTATUS NfMountVolume(PIO_STACK_LOCATION irpSp)
     }
     FINALLY
     {
-        if (weClearedVerifyRequiredBit)
-        {
-            SetFlag(vpb->RealDevice->Flags, DO_VERIFY_VOLUME);
-        }
+        WI_SetFlagIf(vpb->RealDevice->Flags, DO_VERIFY_VOLUME, weClearedVerifyRequiredBit);
 
         if (!NT_SUCCESS(rc))
         {
@@ -209,7 +204,7 @@ NTSTATUS NfUserFsCtrl(const PIO_STACK_LOCATION irpSp)
 
 _Dispatch_type_(IRP_MJ_FILE_SYSTEM_CONTROL) _Function_class_(IRP_MJ_FILE_SYSTEM_CONTROL)
     _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
-    NfFsdFileSystemControl(_In_ PDEVICE_OBJECT const deviceObject, _Inout_ const PIRP irp)
+    NfFsdFileSystemControl(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
     NTSTATUS rc{ STATUS_NOT_IMPLEMENTED };
     TRY
