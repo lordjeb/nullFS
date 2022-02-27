@@ -1,0 +1,5 @@
+#define TRY
+#define FINALLY
+#define LEAVE_IF_NOT_SUCCESS(r)
+#define LEAVE_WITH(s)
+#define LEAVE()

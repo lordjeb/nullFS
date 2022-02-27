@@ -7,29 +7,32 @@
 //
 
 _Dispatch_type_(IRP_MJ_CREATE) _Function_class_(IRP_MJ_CREATE) _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
-    NfFsdCreate(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+    NfFsdCreate(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
-    PAGED_CODE();
-
-    NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
-    __try
+    NTSTATUS  rc;
+    ULONG_PTR information{ 0 };
+    TRY
     {
-        ULONG_PTR information = 0; // TODO: What to do with this?
-        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
+        const auto irpSp = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
+        // If we were called with our file system device object instead of a volume device object just complete with
+        // STATUS_SUCCESS
 
-        if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
+        if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE: FileSystemDO\n");
+            NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "Fsdo", TraceLoggingPointer(deviceObject));
             information = FILE_OPENED;
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CREATE: Unrecognized device object\n");
+        // TODO: Open the file object based on the name
+        NfTraceCreate(WINEVENT_LEVEL_VERBOSE, "File", TraceLoggingPointer(deviceObject),
+                      TraceLoggingPointer(irpSp->FileObject, "fileObject"),
+                      TraceLoggingUnicodeString(&(irpSp->FileObject->FileName), "fileName"));
+        LEAVE_WITH(rc = STATUS_OBJECT_NAME_NOT_FOUND);
     }
-    __finally
+    FINALLY
     {
-        return NfCompleteRequest(irp, rc, 0);
+        return NfCompleteRequest(irp, rc, information);
     }
 }

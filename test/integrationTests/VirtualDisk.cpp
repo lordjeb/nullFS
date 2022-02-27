@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "VirtualDisk.h"
 #include <virtdisk.h>
-#include <wil/resource.h>
 #include <conio.h>
 
 typedef wil::unique_any_handle_invalid<decltype(&::FindVolumeClose), ::FindVolumeClose> unique_hfindvolume;
@@ -16,10 +15,6 @@ VirtualDisk::VirtualDisk(const std::wstring& vhdFilename) : vhdFilename_{ vhdFil
 {
 }
 
-VirtualDisk::~VirtualDisk()
-{
-}
-
 void VirtualDisk::AssignDriveLetter(const std::wstring& driveLetter)
 {
     if (!vhd_.is_valid())
@@ -27,15 +22,15 @@ void VirtualDisk::AssignDriveLetter(const std::wstring& driveLetter)
         THROW_WIN32(ERROR_INVALID_PARAMETER);
     }
 
-    auto volumeName = WaitForVolumeName(3000) + L'\\';
+    const auto volumeName = WaitForVolumeName(10'000) + L'\\';
 
-    THROW_IF_WIN32_BOOL_FALSE(SetVolumeMountPoint(driveLetter.c_str(), volumeName.c_str()));
+    const auto driveLetterWithBackslash = driveLetter + L'\\';
+    THROW_IF_WIN32_BOOL_FALSE(SetVolumeMountPoint(driveLetterWithBackslash.c_str(), volumeName.c_str()));
 }
 
 void VirtualDisk::Attach()
 {
-    ATTACH_VIRTUAL_DISK_PARAMETERS attachParameters;
-    memset(&attachParameters, 0, sizeof(attachParameters));
+    ATTACH_VIRTUAL_DISK_PARAMETERS attachParameters = {};
     attachParameters.Version = ATTACH_VIRTUAL_DISK_VERSION_1;
 
     THROW_IF_WIN32_ERROR(AttachVirtualDisk(vhd_.get(), nullptr, ATTACH_VIRTUAL_DISK_FLAG_NO_DRIVE_LETTER, 0,
@@ -53,8 +48,7 @@ void VirtualDisk::Create(ULONGLONG diskSizeInBytes)
     storageType.DeviceId = VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN;
     storageType.VendorId = VIRTUAL_STORAGE_TYPE_VENDOR_UNKNOWN;
 
-    CREATE_VIRTUAL_DISK_PARAMETERS createParameters;
-    memset(&createParameters, 0, sizeof(createParameters));
+    CREATE_VIRTUAL_DISK_PARAMETERS createParameters = {};
     createParameters.Version = CREATE_VIRTUAL_DISK_VERSION_2;
     THROW_IF_WIN32_ERROR(UuidCreate(&createParameters.Version2.UniqueId));
     createParameters.Version2.MaximumSize = diskSizeInBytes;
@@ -90,20 +84,20 @@ void VirtualDisk::Detach()
 std::wstring VirtualDisk::GetVolumeName()
 {
     wchar_t physicalPath[MAX_PATH];
-    ULONG physicalPathLen = _countof(physicalPath);
+    ULONG   physicalPathLen = _countof(physicalPath);
     THROW_IF_WIN32_ERROR(GetVirtualDiskPhysicalPath(vhd_.get(), &physicalPathLen, physicalPath));
 
-    auto deviceNumberOfPhysicalDisk = _wtol(physicalPath + wcslen(LR"(\\.\PHYSICALDRIVE)"));
+    const auto deviceNumberOfPhysicalDisk = wcstoul(physicalPath + wcslen(LR"(\\.\PHYSICALDRIVE)"), nullptr, 10);
 
-    bool found{ false };
-    wchar_t volumeName[MAX_PATH];
-    unique_hfindvolume find{ FindFirstVolume(volumeName, _countof(volumeName)) };
+    bool                     found{ false };
+    wchar_t                  volumeName[MAX_PATH];
+    const unique_hfindvolume find{ FindFirstVolume(volumeName, _countof(volumeName)) };
     if (find.is_valid())
     {
         do
         {
             // Remove final backslash so we are opening the volume rather than the root directory on the volume
-            auto pch = volumeName + wcslen(volumeName) - 1;
+            const auto pch = volumeName + wcslen(volumeName) - 1;
             *pch = L'\0';
 
             wil::unique_hfile volume{ CreateFile(volumeName,
@@ -112,7 +106,7 @@ std::wstring VirtualDisk::GetVolumeName()
                                                  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_BACKUP_SEMANTICS, 0) };
             THROW_LAST_ERROR_IF(!volume.is_valid());
 
-            DWORD bytesReturned;
+            DWORD                 bytesReturned;
             STORAGE_DEVICE_NUMBER sdn;
             THROW_IF_WIN32_BOOL_FALSE(DeviceIoControl(volume.get(), IOCTL_STORAGE_GET_DEVICE_NUMBER, nullptr, 0, &sdn,
                                                       sizeof(sdn), &bytesReturned, nullptr));
@@ -124,7 +118,7 @@ std::wstring VirtualDisk::GetVolumeName()
         } while (FindNextVolume(find.get(), volumeName, _countof(volumeName)));
     }
 
-    auto gle = GetLastError();
+    const auto gle = GetLastError();
     if (ERROR_SUCCESS != gle && ERROR_NO_MORE_FILES != gle)
     {
         THROW_WIN32(gle);
@@ -141,19 +135,18 @@ std::wstring VirtualDisk::GetVolumeName()
 void VirtualDisk::Initialize()
 {
     wchar_t physicalPath[MAX_PATH];
-    ULONG physicalPathLen = _countof(physicalPath);
+    ULONG   physicalPathLen = _countof(physicalPath);
     THROW_IF_WIN32_ERROR(GetVirtualDiskPhysicalPath(vhd_.get(), &physicalPathLen, physicalPath));
 
-    wil::unique_hfile physicalDrive{ CreateFile(physicalPath, FILE_ALL_ACCESS, 0, nullptr, OPEN_EXISTING,
-                                                FILE_ATTRIBUTE_NORMAL, nullptr) };
+    const wil::unique_hfile physicalDrive{ CreateFile(physicalPath, FILE_ALL_ACCESS, 0, nullptr, OPEN_EXISTING,
+                                                      FILE_ATTRIBUTE_NORMAL, nullptr) };
     THROW_LAST_ERROR_IF(!physicalDrive.is_valid());
 
     DWORD bytesReturned;
 
     // Create the disk partition table (GPT)
     //
-    CREATE_DISK createDisk;
-    memset(&createDisk, 0, sizeof(createDisk));
+    CREATE_DISK createDisk = {};
     createDisk.PartitionStyle = PARTITION_STYLE_GPT;
     THROW_IF_WIN32_ERROR(UuidCreate(&createDisk.Gpt.DiskId));
     createDisk.Gpt.MaxPartitionCount = 128;
@@ -170,14 +163,13 @@ void VirtualDisk::Initialize()
                                               &diskGeometry, sizeof(DISK_GEOMETRY_EX), &bytesReturned, nullptr));
 
     // Note: a GPT disk has 34 reserved sectors at the beginning and 33 at the end (wikipedia)
-    auto gptPrimaryHeaderReserved = 34 * diskGeometry.Geometry.BytesPerSector;
-    auto gptSecondaryHeaderReserved = 33 * diskGeometry.Geometry.BytesPerSector;
-    auto offset = 2 * 1024 * diskGeometry.Geometry.BytesPerSector;
+    const auto gptPrimaryHeaderReserved = 34 * diskGeometry.Geometry.BytesPerSector;
+    const auto gptSecondaryHeaderReserved = 33 * diskGeometry.Geometry.BytesPerSector;
+    const auto offset = 2 * 1024 * diskGeometry.Geometry.BytesPerSector;
     // TODO: Where did this number come from and why different than gptPrimaryHeaderReserved???
-    auto partitionUsableSize = diskGeometry.DiskSize.QuadPart - offset - gptSecondaryHeaderReserved;
+    const auto partitionUsableSize = diskGeometry.DiskSize.QuadPart - offset - gptSecondaryHeaderReserved;
 
-    DRIVE_LAYOUT_INFORMATION_EX driveLayoutInfo;
-    memset(&driveLayoutInfo, 0, sizeof(driveLayoutInfo));
+    DRIVE_LAYOUT_INFORMATION_EX driveLayoutInfo = {};
     driveLayoutInfo.PartitionStyle = PARTITION_STYLE_GPT;
     driveLayoutInfo.Gpt.StartingUsableOffset.QuadPart = gptPrimaryHeaderReserved;
     driveLayoutInfo.Gpt.UsableLength.QuadPart = partitionUsableSize;
@@ -214,8 +206,7 @@ void VirtualDisk::Open()
     storageType.DeviceId = VIRTUAL_STORAGE_TYPE_DEVICE_UNKNOWN;
     storageType.VendorId = VIRTUAL_STORAGE_TYPE_VENDOR_UNKNOWN;
 
-    OPEN_VIRTUAL_DISK_PARAMETERS openParameters;
-    memset(&openParameters, 0, sizeof(openParameters));
+    OPEN_VIRTUAL_DISK_PARAMETERS openParameters = {};
     openParameters.Version = OPEN_VIRTUAL_DISK_VERSION_1;
     openParameters.Version1.RWDepth = 0;
     THROW_IF_WIN32_ERROR(
@@ -226,8 +217,8 @@ void VirtualDisk::Open()
 
 std::wstring VirtualDisk::WaitForVolumeName(long waitTimeMs)
 {
-    constexpr const int waitInterval = 500;
-    long i{ waitTimeMs / waitInterval };
+    constexpr int waitInterval = 250;
+    long          i{ waitTimeMs / waitInterval };
     do
     {
         try

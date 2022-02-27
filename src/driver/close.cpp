@@ -6,27 +6,30 @@
 //
 
 _Dispatch_type_(IRP_MJ_CLOSE) _Function_class_(IRP_MJ_CLOSE) _Function_class_(DRIVER_DISPATCH) extern "C" NTSTATUS
-    NfFsdClose(_In_ PDEVICE_OBJECT volumeDeviceObject, _Inout_ PIRP irp)
+    NfFsdClose(_In_ PDEVICE_OBJECT deviceObject, _Inout_ PIRP irp)
 {
-    PAGED_CODE();
-
-    NTSTATUS rc{ STATUS_ILLEGAL_FUNCTION };
-    __try
+    NTSTATUS  rc;
+    ULONG_PTR information{ 0 };
+    TRY
     {
-        PIO_STACK_LOCATION currentIrpStackLocation = IoGetCurrentIrpStackLocation(irp);
+        const auto irpSp = IoGetCurrentIrpStackLocation(irp);
 
-        NfDbgPrint(DPFLTR_CLOSE, "IRP_MJ_CLOSE [FileObj=%08p]\n", currentIrpStackLocation->FileObject);
+        // If we were called with our file system device object instead of a volume device object just complete with
+        // STATUS_SUCCESS
 
-        if (NfDeviceIsFileSystemDeviceObject(volumeDeviceObject))
+        if (NfDeviceIsFileSystemDeviceObject(deviceObject))
         {
-            NfDbgPrint(DPFLTR_CREATE, "IRP_MJ_CLOSE: FileSystemDO\n");
+            NfTraceClose(WINEVENT_LEVEL_VERBOSE, "Close_Fsdo", TraceLoggingPointer(deviceObject));
+            information = FILE_OPENED;
             LEAVE_WITH(rc = STATUS_SUCCESS);
         }
 
-        NfDbgPrint(DPFLTR_CLOSE, "Unrecognized device object\n");
+        NfTraceClose(WINEVENT_LEVEL_VERBOSE, "Close_File", TraceLoggingPointer(deviceObject),
+                     TraceLoggingPointer(irpSp->FileObject, "fileObject"));
+        rc = STATUS_SUCCESS;
     }
-    __finally
+    FINALLY
     {
-        return NfCompleteRequest(irp, rc, 0);
+        return NfCompleteRequest(irp, rc, information);
     }
 }

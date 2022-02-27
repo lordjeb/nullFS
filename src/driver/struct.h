@@ -1,38 +1,34 @@
 #pragma once
 #include <ntifs.h>
 
-typedef struct _NfVolumeControlBlock
+struct NfVolumeControlBlock
 {
-    ULONG n;
-} NfVolumeControlBlock;
+    // TODO: Add (and initialize a node type and node size)
+    // ExResource for synchronization
+    // List of FCBs
+    // List of Notify IRPs
+    // List of volume opens?
+    // Notify IRP list mutex
+    // Filesize and allocation size?
+    // Valid data length
 
-// The Volume Device Object is an I/O system device object with a workqueue and an VCB record
-// appended to the end. There are multiple of these records, one for every mounted volume, and
-// are created during a volume mount operation. The work queue is for handling an overload of
-// work requests to the volume.
-typedef struct _NfVolumeDeviceObject
+    FSRTL_ADVANCED_FCB_HEADER volumeFileHeader;
+    FAST_MUTEX                advancedFcbHeaderMutex;
+    ERESOURCE                 lock;
+    LIST_ENTRY                vcbListEntry;
+    ULONG                     flags;
+    DEVICE_OBJECT*            targetDeviceObject;
+    VPB*                      vpb;
+    FILE_OBJECT*              virtualVolumeFile;
+    SECTION_OBJECT_POINTERS   sectionObjectPointers;
+};
+
+struct NfVolumeDeviceObject
 {
-    DEVICE_OBJECT DeviceObject;
+    DEVICE_OBJECT        deviceObject;
+    NfVolumeControlBlock vcb;
+};
 
-    // The following field tells how many requests for this volume have either been enqueued to
-    // ExWorker threads or are currently being serviced by ExWorker threads. If the number goes
-    // above a certain threshold, put the request on the overflow queue to be executed later.
-    ULONG PostedRequestCount;
+NfVolumeControlBlock* NfpInitializeVcb(NfVolumeControlBlock* vcb, VPB* vpb, DEVICE_OBJECT* targetDeviceObject);
 
-    // The following field indicates the number of IRP's waiting to be serviced in the overflow queue.
-    ULONG OverflowQueueCount;
-
-    // The following field contains the queue header of the overflow queue. The Overflow queue is a
-    // list of IRP's linked via the IRP's ListEntry field.
-    LIST_ENTRY OverflowQueue;
-
-    // The following spinlock protects access to all the above fields.
-    KSPIN_LOCK OverflowQueueSpinLock;
-
-    // This is a common head for the FAT volume file
-    FSRTL_COMMON_FCB_HEADER VolumeFileHeader;
-
-    // This is the file system specific volume control block.
-    NfVolumeControlBlock Vcb;
-
-} NfVolumeDeviceObject;
+void NfUninitializeVcb(NfVolumeControlBlock* vcb);

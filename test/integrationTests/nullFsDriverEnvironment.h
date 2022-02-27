@@ -8,13 +8,12 @@ class NullFsDriverEnvironment : public ::testing::Environment
 public:
     NullFsDriverEnvironment();
 
-    virtual void SetUp();
-    virtual void TearDown();
-    std::wstring getWorkingDirectory();
-    bool isUserAdmin();
+    virtual void        SetUp();
+    virtual void        TearDown();
+    static std::wstring GetWorkingDirectory();
+    static bool         IsUserAdmin();
 
 private:
-    CreateTestDisk createTestDisk_;
     InstallTestDriver installTestDriver_;
-    StartTestDriver startTestDriver_;
+    StartTestDriver   startTestDriver_;
 };
