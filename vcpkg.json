@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "nullfs",
+  "version": "1.0.0",
+  "dependencies": [
+    "gtest",
+    "wil"
+  ],
+  "builtin-baseline": "7b30311f0a79d395bf2d933d82fec1853c6a4e77"
+}
