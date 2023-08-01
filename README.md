@@ -4,15 +4,15 @@ nullFS is an educational research project. It is a full implementation of a Wind
 
 ## Testing Environment
 
-1. Windows 10 VM
+1. Windows 10/11 VM (x64 only)
 1. Copy files to test VM:
    * `nullFS.sys`
    * `nullFS.inf`
    * `nullFSIntegrationTests.exe`
+   * You can use `.\test\scripts\updateTestVm.ps1` to copy these files, but must set the DRIVER_DEV_VM_NAME and DRIVER_DEV_VM_PATH environment variables first.
+1. Install driver by double-clicking `nullFS.inf`
 1. Enable driver verifier
    * `verifier.exe /flags standard /driver nullFS.sys`
-1. [Optional] Enable debug output filter
-    * `reg.exe add "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter" /v IHVDRIVER /t REG_DWORD /d 0xFFFFFFFF`
 1. Restart VM
 1. Attach a kernel debugger
 1. [Optional] Enable wmitrace output to debugger
@@ -21,3 +21,7 @@ nullFS is an educational research project. It is a full implementation of a Wind
     * `!wmitrace.kdtracing nullFS 1`
 1. Run tests
    * `nullFSIntegrationTests.exe --gtest_filter=*`
+
+## Future work items
+
+1. Create a debugger extension to dump the file system state
